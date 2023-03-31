@@ -2,6 +2,19 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
-    "hardhat": "^2.13.0"
+    "hardhat": "^2.13.0",
+    "hardhat-abi-exporter": "^2.10.1",
+    "hardhat-gas-reporter": "^1.0.9",
+    "eslint": "^8.32.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-mocha": "^10.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.2",
+    "prettier-plugin-solidity": "^1.1.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.8.2",
+    "@openzeppelin/hardhat-upgrades": "^1.22.1",
+    "dotenv": "^16.0.3"
   }
 }
