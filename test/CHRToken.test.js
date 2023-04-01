@@ -5,16 +5,15 @@ const { ZERO_ADDRESS, DECIMALS } = require("./consts");
 
 describe("CHRToken", function () {
     //Setup values
-    const cap = 1_000_000;
     let totalSupply;
 
     it("should be correctly deployed if total supply is under cap", async function () {
         //Setup values
-        totalSupply = cap / 2;
+        totalSupply = 1000000n / 2n;
 
         //Deploy contract
         const CHRFactory = await hre.ethers.getContractFactory("CHRToken");
-        const CHR = await CHRFactory.deploy(totalSupply, cap);
+        const CHR = await CHRFactory.deploy(totalSupply);
 
         //Assert deploy was successful
         await expect(CHR).not.to.be.reverted;
@@ -23,11 +22,11 @@ describe("CHRToken", function () {
 
     it("should be correctly deployed if total supply is equal to cap", async function () {
         //Setup values
-        totalSupply = cap;
+        totalSupply = 1000000n;
 
         //Deploy contract
         const CHRFactory = await hre.ethers.getContractFactory("CHRToken");
-        const CHR = await CHRFactory.deploy(totalSupply, cap);
+        const CHR = await CHRFactory.deploy(totalSupply);
 
         //Assert deploy was successful
         await expect(CHR).not.to.be.reverted;
@@ -36,12 +35,12 @@ describe("CHRToken", function () {
 
     it("should have creator as an owner after deploy", async function () {
         //Setup values
-        totalSupply = cap;
+        totalSupply = 1000000n;
         const [creator] = await getSigners();
 
         //Deploy contract
         const CHRFactory = await hre.ethers.getContractFactory("CHRToken");
-        const CHR = await CHRFactory.connect(creator).deploy(totalSupply, cap);
+        const CHR = await CHRFactory.connect(creator).deploy(totalSupply);
 
         //Assert deploy was successful
         await expect(CHR).not.to.be.reverted;
@@ -56,12 +55,12 @@ describe("CHRToken", function () {
 
     it("should have correct values after deploying", async function () {
         //Setup values
-        totalSupply = cap;
+        totalSupply = 1000000n;
         const [creator] = await getSigners();
 
         //Deploy contract
         const CHRFactory = await hre.ethers.getContractFactory("CHRToken");
-        const CHR = await CHRFactory.connect(creator).deploy(totalSupply, cap);
+        const CHR = await CHRFactory.connect(creator).deploy(totalSupply);
 
         //Assert deploy was successful
         await expect(CHR).not.to.be.reverted;
@@ -79,13 +78,13 @@ describe("CHRToken", function () {
     });
 
     describe("Token functions", function () {
-        async function deployContractFixture(totalSupply = 500_000, cap = 1_000_000) {
+        async function deployContractFixture(totalSupply = 500_000) {
             //Setup values
             const [creator, Alice] = await getSigners();
 
             //Deploy contract
             const CHRFactory = await hre.ethers.getContractFactory("CHRToken");
-            const CHR = await CHRFactory.connect(creator).deploy(totalSupply, cap);
+            const CHR = await CHRFactory.connect(creator).deploy(totalSupply);
             return {
                 CHR,
                 users: {

@@ -10,7 +10,7 @@ describe("CHRPresale", function () {
 
   async function deployCHRTokenFixture(creator) {
     const CHRFactory = await hre.ethers.getContractFactory("CHRToken");
-    return await CHRFactory.connect(creator).deploy(250000000, 500000000);
+    return await CHRFactory.connect(creator).deploy(250000000);
   }
 
   async function deployUSDTStubFixture(creator) {
