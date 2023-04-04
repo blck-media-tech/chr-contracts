@@ -235,7 +235,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
 
     /// @notice Returns amount of tokens sold on current stage
     function getSoldOnCurrentStage() external view returns (uint256 soldOnCurrentStage) {
-        soldOnCurrentStage = totalTokensSold - ((currentStage == 0)? 0 : limitPerStage[currentStage]);
+        soldOnCurrentStage = totalTokensSold - ((currentStage == 0)? 0 : limitPerStage[currentStage-1]);
     }
 
     /// @notice Returns presale last stage token amount limit
