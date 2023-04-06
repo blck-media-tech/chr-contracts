@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "contracts/CHRPresale.sol";
 import "contracts/CHRToken.sol";
 import "contracts/test/MockAggregator.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CHRPresaleHarness is CHRPresale {
     constructor(
@@ -43,7 +43,8 @@ contract CHRPresaleHelper is Test {
     CHRPresaleHarness presaleContract;
     CHRToken tokenContract;
     MockAggregator mockAggregator;
-    IERC20 mockUSDT;
+    address mockUSDT;
+    IERC20 mockUSDTWrapped;
 
     uint256 totalSupply = 1_000_000;
     uint256[4] limitPerStage = [1_000_000_000, 2_000_000_000, 3_000_000_000, 4_000_000_000];
@@ -52,7 +53,7 @@ contract CHRPresaleHelper is Test {
     constructor() {
         tokenContract = new CHRToken(totalSupply);
         mockAggregator = new MockAggregator();
-        address mockUSDTAddress = deployCode("USDT.mock.sol:USDTMock", abi.encode(0, "USDT mock", "USDT", 6));
-        mockUSDT = IERC20(mockUSDTAddress);
+        mockUSDT = deployCode("USDT.mock.sol:USDTMock", abi.encode(0, "USDT mock", "USDT", 6));
+        mockUSDTWrapped = IERC20(mockUSDT);
     }
 }
