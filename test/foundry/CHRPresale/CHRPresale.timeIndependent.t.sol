@@ -192,6 +192,7 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
 
     function testFuzz_ConfigureClaim_RevertOn_NonOwnerCall(uint256 _totalTokensSold, uint256 _claimStartTime, address _nonOwner) public {
         vm.assume(type(uint256).max / 1e18 > _totalTokensSold);
+        vm.assume(_nonOwner != presaleContract.owner());
         presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
         deal(address(tokenContract), address(presaleContract), _totalTokensSold * 1e18);
         assertEq(tokenContract.balanceOf(address(presaleContract)), _totalTokensSold * 1e18);
