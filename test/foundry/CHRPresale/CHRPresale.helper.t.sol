@@ -56,4 +56,20 @@ contract CHRPresaleHelper is Test {
         mockUSDT = deployCode("USDT.mock.sol:USDTMock", abi.encode(0, "USDT mock", "USDT", 6));
         mockUSDTWrapped = IERC20(mockUSDT);
     }
+
+    function helper_purchaseTokens(address _user, uint256 _amount, address _owner) public {
+        uint256 startTime = block.timestamp;
+        vm.warp(presaleContract.saleStartTime());
+        uint256 ethPrice = presaleContract.getPriceInETH(_amount);
+
+        vm.prank(presaleContract.owner());
+        presaleContract.transferOwnership(_owner);
+
+        vm.deal(_user, ethPrice);
+        deal(address(tokenContract), address(presaleContract), _amount * 1e18, true);
+
+        vm.prank(_user);
+        presaleContract.buyWithEth{value:ethPrice}(_amount);
+        vm.warp(startTime);
+    }
 }
