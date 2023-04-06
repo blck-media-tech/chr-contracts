@@ -840,10 +840,10 @@ describe("CHRPresale", function () {
         await USDT.connect(users.creator).approve(presale.address, USDTPrice);
 
         //Buy with USDT
-        const buyWithUSDTTx = presale.connect(users.creator).buyWithUSDT(tokensToPurchase);
+        const buyWithUSDTTx = presale.connect(users.creator).buyWithUSDT(tokensToPurchase + 1);
 
         //Assert transaction was reverted
-        await expect(buyWithUSDTTx).to.be.revertedWith("Insufficient funds");
+        await expect(buyWithUSDTTx).to.be.revertedWithCustomError(presale, "PresaleLimitExceeded");
       });
 
       it("should revert if try to buy 0 tokens", async function () {
