@@ -38,6 +38,7 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
     function testFuzz_BuyWithEth(uint256 _amount, address _user, address _owner) public {
         vm.assume(address(_owner) != address(0));
         vm.assume(_owner != _user);
+        vm.assume(_owner >= address(10));
         vm.assume(_owner.code.length == 0);
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
@@ -61,6 +62,8 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
             presaleContract.getPriceInETH(_amount),
             block.timestamp
         );
+
+
 
         vm.prank(_user);
         presaleContract.buyWithEth{value : ethCost}(_amount);

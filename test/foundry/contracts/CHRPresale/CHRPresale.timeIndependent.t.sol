@@ -173,6 +173,7 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
     }
 
     function testFuzz_ConfigureSaleTimeframe_RevertOn_NonOwnerCall(uint256 _saleStartTime, uint256 _saleEndTime, address _nonOwner) public {
+        vm.assume(_nonOwner != address(presaleContract.owner()));
         vm.expectRevert("Ownable: caller is not the owner");
 
         vm.prank(_nonOwner);
@@ -239,6 +240,7 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
 
     function testFuzz_SendValue(address payable _user, uint256 _amount) public {
         vm.assume(_user.code.length == 0);
+        vm.assume(_user >= address(10));
         uint256 balanceBefore = address(_user).balance;
         deal(address(presaleContract), _amount);
 

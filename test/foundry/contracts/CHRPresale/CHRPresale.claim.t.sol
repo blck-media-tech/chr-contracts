@@ -58,7 +58,7 @@ contract CHRPresaleTest_Claim is Test, CHRPresaleHelper, IPresale {
 
     function testFuzz_Claim(address _user, uint256 _amount, address _owner) public {
         vm.assume(_user != address(0));
-        vm.assume(_owner != address(0));
+        vm.assume(_owner >= address(10));
         vm.assume(_owner != _user);
         vm.assume(_owner.code.length == 0);
         vm.assume(_amount > 0);
@@ -83,7 +83,7 @@ contract CHRPresaleTest_Claim is Test, CHRPresaleHelper, IPresale {
 
     function testFuzz_Claim_RevertWhen_ClaimingSecondTime(address _user, uint256 _amount, address _owner) public {
         vm.assume(_user != address(0));
-        vm.assume(_owner != address(0));
+        vm.assume(_owner >= address(10));
         vm.assume(_owner != _user);
         vm.assume(_owner.code.length == 0);
         vm.assume(_amount > 0);
