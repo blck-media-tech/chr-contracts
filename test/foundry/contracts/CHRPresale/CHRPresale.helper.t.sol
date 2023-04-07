@@ -4,8 +4,7 @@ pragma solidity 0.8.18;
 import "forge-std/Test.sol";
 import "contracts/CHRPresale.sol";
 import "contracts/CHRToken.sol";
-import "contracts/test/MockAggregator.sol";
-//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "contracts/test/ChainLinkAggregator.mock.sol";
 
 contract CHRPresaleHarness is CHRPresale {
     constructor(
@@ -42,7 +41,7 @@ contract CHRPresaleHarness is CHRPresale {
 contract CHRPresaleHelper is Test {
     CHRPresaleHarness presaleContract;
     CHRToken tokenContract;
-    MockAggregator mockAggregator;
+    ChainLinkAggregatorMock mockAggregator;
     address mockUSDT;
     IERC20 mockUSDTWrapped;
 
@@ -52,7 +51,7 @@ contract CHRPresaleHelper is Test {
 
     constructor() {
         tokenContract = new CHRToken(totalSupply);
-        mockAggregator = new MockAggregator();
+        mockAggregator = new ChainLinkAggregatorMock();
         mockUSDT = deployCode("USDT.mock.sol:USDTMock", abi.encode(0, "USDT mock", "USDT", 6));
         mockUSDTWrapped = IERC20(mockUSDT);
     }

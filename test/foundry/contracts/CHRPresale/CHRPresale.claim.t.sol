@@ -38,7 +38,7 @@ contract CHRPresaleTest_Claim is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.currentStage(), 0);
     }
 
-    function testFuzz_BuyWithEth_RevertAlways(uint256 _amount, address _user) public {
+    function testFuzz_BuyWithEth_RevertWhen_ClaimStarted(uint256 _amount, address _user) public {
         vm.expectRevert(
             abi.encodeWithSelector(InvalidTimeframe.selector)
         );
@@ -47,7 +47,7 @@ contract CHRPresaleTest_Claim is Test, CHRPresaleHelper, IPresale {
         presaleContract.buyWithEth(_amount);
     }
 
-    function testFuzz_BuyWithUSDT_RevertAlways(uint256 _amount, address _user) public {
+    function testFuzz_BuyWithUSDT_RevertWhen_ClaimStarted(uint256 _amount, address _user) public {
         vm.expectRevert(
             abi.encodeWithSelector(InvalidTimeframe.selector)
         );

@@ -52,7 +52,7 @@ contract CHRTokenTest is Test {
         assertEq(tokenContract.balanceOf(_transferTarget), balanceTarget + _amount, "Target balance does not meet expectations");
     }
 
-    function testFuzz_Transfer_RevertWhen_NotEnoughBalance(uint256 _amount, address _transferSource, address _transferTarget) public {
+    function testFuzz_Transfer_RevertOn_NotEnoughBalance(uint256 _amount, address _transferSource, address _transferTarget) public {
         vm.assume(_transferSource != address(0));
         vm.assume(_transferTarget != address(0));
         vm.assume(_transferSource != _transferTarget);
@@ -64,7 +64,7 @@ contract CHRTokenTest is Test {
         tokenContract.transfer(_transferTarget, _amount);
     }
 
-    function testFuzz_Transfer_RevertWhen_TransferFromZeroAddress(uint256 _amount, address _transferTarget) public {
+    function testFuzz_Transfer_RevertOn_TransferFromZeroAddress(uint256 _amount, address _transferTarget) public {
         vm.assume(_transferTarget != address(0));
         vm.assume(_amount <= cap);
         vm.assume(_amount > 0);
@@ -75,7 +75,7 @@ contract CHRTokenTest is Test {
         tokenContract.transfer(_transferTarget, _amount);
     }
 
-    function testFuzz_Transfer_RevertWhen_TransferToZeroAddress(uint256 _amount, address _transferSource) public {
+    function testFuzz_Transfer_RevertOn_TransferToZeroAddress(uint256 _amount, address _transferSource) public {
         vm.assume(_transferSource != address(0));
         vm.assume(_amount <= cap);
         vm.assume(_amount > 0);
@@ -113,7 +113,7 @@ contract CHRTokenTest is Test {
         assertEq(tokenContract.balanceOf(_transferExecutor), balanceExecutor, "Executors balance was changed");
     }
 
-    function testFuzz_TransferFrom_RevertWhen_NotEnoughAllowance(uint256 _amount, address _transferSource, address _transferTarget, address _transferExecutor) public {
+    function testFuzz_TransferFrom_RevertOn_NotEnoughAllowance(uint256 _amount, address _transferSource, address _transferTarget, address _transferExecutor) public {
         vm.assume(_transferSource != address(0));
         vm.assume(_transferTarget != address(0));
         vm.assume(_transferExecutor != address(0));
@@ -131,7 +131,7 @@ contract CHRTokenTest is Test {
         tokenContract.transferFrom(_transferSource, _transferTarget, _amount);
     }
 
-    function testFuzz_TransferFrom_RevertWhen_NotEnoughBalance(uint256 _amount, address _transferSource, address _transferTarget, address _transferExecutor) public {
+    function testFuzz_TransferFrom_RevertOn_NotEnoughBalance(uint256 _amount, address _transferSource, address _transferTarget, address _transferExecutor) public {
         vm.assume(_transferSource != address(0));
         vm.assume(_transferTarget != address(0));
         vm.assume(_transferExecutor != address(0));
@@ -147,7 +147,7 @@ contract CHRTokenTest is Test {
         tokenContract.transferFrom(_transferSource, _transferTarget, _amount);
     }
 
-    function testFuzz_TransferFrom_RevertWhen_TransferToZeroAddress(uint256 _amount, address _transferSource, address _transferExecutor) public {
+    function testFuzz_TransferFrom_RevertOn_TransferToZeroAddress(uint256 _amount, address _transferSource, address _transferExecutor) public {
         vm.assume(_transferSource != address(0));
         vm.assume(_transferExecutor != address(0));
         vm.assume(_transferSource != _transferExecutor);
@@ -179,7 +179,7 @@ contract CHRTokenTest is Test {
         assertEq(tokenContract.allowance(_allowanceSource, _allowanceTarget), _amount, "Allowance does not meet expectations");
     }
 
-    function testFuzz_Approve_RevertWhen_ApproveFromZeroAddress(uint256 _amount, address _allowanceTarget) public {
+    function testFuzz_Approve_RevertOn_ApproveFromZeroAddress(uint256 _amount, address _allowanceTarget) public {
         vm.assume(_allowanceTarget != address(0));
 
         vm.expectRevert("ERC20: approve from the zero address");
@@ -188,7 +188,7 @@ contract CHRTokenTest is Test {
         tokenContract.approve(_allowanceTarget, _amount);
     }
 
-    function testFuzz_Approve_RevertWhen_ApproveToZeroAddress(uint256 _amount, address _allowanceSource) public {
+    function testFuzz_Approve_RevertOn_ApproveToZeroAddress(uint256 _amount, address _allowanceSource) public {
         vm.assume(_allowanceSource != address(0));
 
         vm.expectRevert("ERC20: approve to the zero address");
@@ -217,7 +217,7 @@ contract CHRTokenTest is Test {
         assertEq(tokenContract.allowance(_allowanceSource, _allowanceTarget), sourceToTargetAllowance + _amount, "Allowance does not meet expectations");
     }
 
-    function testFuzz_IncreaseAllowance_RevertWhen_ApproveFromZeroAddress(uint256 _amount, address _allowanceTarget) public {
+    function testFuzz_IncreaseAllowance_RevertOn_ApproveFromZeroAddress(uint256 _amount, address _allowanceTarget) public {
         vm.assume(_allowanceTarget != address(0));
 
         vm.expectRevert("ERC20: approve from the zero address");
@@ -226,7 +226,7 @@ contract CHRTokenTest is Test {
         tokenContract.increaseAllowance(_allowanceTarget, _amount);
     }
 
-    function testFuzz_IncreaseAllowance_RevertWhen_ApproveToZeroAddress(uint256 _amount, address _allowanceSource) public {
+    function testFuzz_IncreaseAllowance_RevertOn_ApproveToZeroAddress(uint256 _amount, address _allowanceSource) public {
         vm.assume(_allowanceSource != address(0));
 
         vm.expectRevert("ERC20: approve to the zero address");
@@ -255,7 +255,7 @@ contract CHRTokenTest is Test {
         assertEq(tokenContract.allowance(_allowanceSource, _allowanceTarget), sourceToTargetAllowance - _amount, "Allowance does not meet expectations");
     }
 
-    function testFuzz_DecreaseAllowance_RevertWhen_DecreasingBelowZero(uint256 _startingAmount, uint256 _amount, address _allowanceSource, address _allowanceTarget) public {
+    function testFuzz_DecreaseAllowance_RevertOn_DecreasingBelowZero(uint256 _startingAmount, uint256 _amount, address _allowanceSource, address _allowanceTarget) public {
         vm.assume(_allowanceSource != address(0));
         vm.assume(_allowanceTarget != address(0));
         vm.assume(_allowanceSource != _allowanceTarget);

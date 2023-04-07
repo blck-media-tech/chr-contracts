@@ -4,7 +4,6 @@ pragma solidity 0.8.18;
 import "forge-std/Test.sol";
 import "contracts/interfaces/IPresale.sol";
 import "./CHRPresale.helper.t.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
     event Paused(address account);

@@ -71,7 +71,7 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
-    function testFuzz_BuyWithEth_RevertWhen_PurchasingZeroTokens(address _user) public {
+    function testFuzz_BuyWithEth_RevertOn_PurchasingZeroTokens(address _user) public {
         vm.expectRevert(
             abi.encodeWithSelector(BuyAtLeastOneToken.selector)
         );
@@ -80,7 +80,7 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         presaleContract.buyWithEth(0);
     }
 
-    function testFuzz_BuyWithEth_RevertWhen_PurchasingMoreTokensThanPresaleLimit(address _user, uint256 _amount) public {
+    function testFuzz_BuyWithEth_RevertOn_PurchasingMoreTokensThanPresaleLimit(address _user, uint256 _amount) public {
         vm.assume(_amount > limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
         vm.expectRevert(
@@ -109,8 +109,8 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         address(mockUSDT).call(
             abi.encodeWithSignature(
                 "approve(address,uint256)",
-                    address(presaleContract),
-                    usdtCost
+                address(presaleContract),
+                usdtCost
             )
         );
 
@@ -132,7 +132,43 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
-    function testFuzz_Claim(address _user) public {
+    function testFuzz_BuyWithUSDT_RevertOn_PurchasingZeroTokens(address _user) public {
+        vm.assume(_user != address(0));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(BuyAtLeastOneToken.selector)
+        );
+
+        vm.prank(_user);
+        presaleContract.buyWithUSDT(0);
+    }
+
+    function testFuzz_BuyWithUSDT_RevertOn_PurchasingMoreTokensThanPresaleLimit(address _user, uint256 _amount) public {
+        vm.assume(_amount > limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(PresaleLimitExceeded.selector, limitPerStage[presaleContract.MAX_STAGE_INDEX()] - presaleContract.totalTokensSold())
+        );
+
+        vm.prank(_user);
+        presaleContract.buyWithUSDT(_amount);
+    }
+
+    function testFuzz_BuyWithUSDT_RevertOn_NotEnoughAllowance(address _user, uint256 _amount) public {
+        vm.assume(_amount > 0);
+        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+
+        uint256 usdtCost = presaleContract.getPriceInUSDT(_amount);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(NotEnoughAllowance.selector, 0, usdtCost)
+        );
+
+        vm.prank(_user);
+        presaleContract.buyWithUSDT(_amount);
+    }
+
+    function testFuzz_Claim_RevertWhen_PresaleInProgress(address _user) public {
         vm.expectRevert(
             abi.encodeWithSelector(InvalidTimeframe.selector)
         );

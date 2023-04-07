@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.0;
 
 import "../interfaces/IChainlinkPriceFeed.sol";
 
-contract MockAggregator is IChainlinkPriceFeed {
+contract ChainLinkAggregatorMock is IChainlinkPriceFeed {
     int256 price = 1500;
 
     function latestRoundData()
