@@ -23,7 +23,7 @@ contract CHRTokenTest is Test {
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    function setUp() public {
+    function setUp() public virtual {
         tokenContract = new CHRTokenHarness(initialSupply);
     }
 
@@ -268,5 +268,83 @@ contract CHRTokenTest is Test {
 
         vm.prank(_allowanceSource);
         tokenContract.decreaseAllowance(_allowanceTarget, _amount);
+    }
+
+    function testFuzz_Mint(address _user, uint248 _amount, uint248 _initialBalance) public {
+        vm.assume(_amount > 0);
+
+        deal(address(tokenContract), _user, _initialBalance, true);
+
+        uint256 balanceBefore = tokenContract.balanceOf(_user);
+        uint256 totalSupplyBefore = tokenContract.totalSupply();
+
+        vm.prank(tokenContract.owner());
+        tokenContract.mint(_user, _amount);
+
+        assertEq(tokenContract.balanceOf(_user), balanceBefore + _amount);
+        assertEq(tokenContract.totalSupply(), totalSupplyBefore + _amount);
+    }
+
+    function testFuzz_Mint_RevertOn_NonOwnerCall(address _user, uint248 _amount, uint248 _initialBalance) public {
+        vm.assume(_amount > 0);
+        vm.assume(_user != address(0));
+        vm.assume(_user != tokenContract.owner());
+
+        deal(address(tokenContract), _user, _initialBalance, true);
+
+        vm.expectRevert("Ownable: caller is not the owner");
+
+        vm.prank(_user);
+        tokenContract.mint(_user, _amount);
+    }
+
+    function testFuzz_Mint_RevertOn_MintToZeroAddress(uint256 _amount) public {
+        vm.assume(_amount > 0);
+
+        vm.expectRevert("ERC20: mint to the zero address");
+
+        tokenContract.mint(address(0), _amount);
+    }
+
+    function testFuzz_Burn(address _user, uint256 _amount, uint256 _initialBalance) public {
+        vm.assume(_amount > 0);
+        vm.assume(_user != address(0));
+        vm.assume(_initialBalance < type(uint256).max - tokenContract.totalSupply());
+        vm.assume(_amount < _initialBalance);
+
+        deal(address(tokenContract), _user, _initialBalance, true);
+
+        uint256 balanceBefore = tokenContract.balanceOf(_user);
+        uint256 totalSupplyBefore = tokenContract.totalSupply();
+
+        vm.prank(_user);
+        tokenContract.burn(_amount);
+
+        assertEq(tokenContract.balanceOf(_user), balanceBefore - _amount);
+        assertEq(tokenContract.totalSupply(), totalSupplyBefore - _amount);
+    }
+
+    function testFuzz_Burn_RevertOn_BurnFromZeroAddress(uint256 _amount, uint256 _initialBalance) public {
+        vm.assume(_amount > 0);
+        vm.assume(_initialBalance < type(uint256).max - tokenContract.totalSupply());
+        vm.assume(_amount < _initialBalance);
+
+        vm.expectRevert("ERC20: burn from the zero address");
+
+        vm.prank(address(0));
+        tokenContract.burn(_amount);
+    }
+
+    function testFuzz_Burn_RevertOn_BurnExceedsBalance(address _user, uint256 _amount, uint256 _initialBalance) public {
+        vm.assume(_user != address(0));
+        vm.assume(_initialBalance < type(uint256).max - tokenContract.totalSupply());
+        vm.assume(_amount > _initialBalance);
+
+        deal(address(tokenContract), _user, _initialBalance, true);
+
+        vm.expectRevert("ERC20: burn amount exceeds balance");
+
+        vm.prank(_user);
+        tokenContract.burn(_amount);
     }
 }
