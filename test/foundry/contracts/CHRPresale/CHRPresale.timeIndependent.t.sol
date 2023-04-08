@@ -9,9 +9,7 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
     event Paused(address account);
     event Unpaused(address account);
 
-    uint256 timeDelay = 1 days;
-
-    function setUp() public {
+    function setUp() public virtual {
         uint256 saleStartTime = block.timestamp + timeDelay;
         uint256 saleEndTime = block.timestamp + timeDelay * 2;
         presaleContract = new CHRPresaleHarness(

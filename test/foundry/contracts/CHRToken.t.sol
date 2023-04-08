@@ -272,6 +272,7 @@ contract CHRTokenTest is Test {
 
     function testFuzz_Mint(address _user, uint248 _amount, uint248 _initialBalance) public {
         vm.assume(_amount > 0);
+        vm.assume(_user != address(0));
 
         deal(address(tokenContract), _user, _initialBalance, true);
 

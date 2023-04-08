@@ -48,6 +48,7 @@ contract CHRPresaleHelper is Test {
     uint256 totalSupply = 1_000_000;
     uint256[4] limitPerStage = [1_000_000_000, 2_000_000_000, 3_000_000_000, 4_000_000_000];
     uint256[4] pricePerStage = [100_000, 200_000, 400_000, 800_000];
+    uint256 timeDelay = 1 days;
 
     constructor() {
         tokenContract = new CHRToken(totalSupply);

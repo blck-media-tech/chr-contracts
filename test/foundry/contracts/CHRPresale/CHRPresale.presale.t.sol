@@ -6,9 +6,8 @@ import "contracts/interfaces/IPresale.sol";
 import "./CHRPresale.helper.t.sol";
 
 contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
-    uint256 timeDelay = 1 days;
 
-    function setUp() public {
+    function setUp() public virtual {
         uint256 saleStartTime = block.timestamp + timeDelay;
         uint256 saleEndTime = block.timestamp + timeDelay * 2;
         presaleContract = new CHRPresaleHarness(
