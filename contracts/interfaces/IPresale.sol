@@ -22,17 +22,17 @@ interface IPresale {
         uint256 timestamp
     );
 
-    /// @notice
+    /// @notice Function can not be called now
     error InvalidTimeframe();
 
-    /// @notice
+    /// @notice Trying to buy 0 tokens
     error BuyAtLeastOneToken();
 
     /// @notice Passed amount is more than amount of tokens remaining for presale
     /// @param tokensRemains - amount of tokens remaining for presale
     error PresaleLimitExceeded(uint256 tokensRemains);
 
-    /// @notice
+    /// @notice User is in blacklist
     error YouAreInBlacklist();
 
     /// @notice If zero address was passed
