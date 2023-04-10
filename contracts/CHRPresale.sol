@@ -169,8 +169,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using ETH
     /// @param _amount - Amount of tokens to buy
     function buyWithEth(uint256 _amount) external payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
-        uint256 priceInETH = getPriceInETH(_amount);
-        uint256 priceInUSDT = getPriceInUSDT(_amount);
+        (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
         if(msg.value < priceInETH) revert NotEnoughETH(msg.value, priceInETH);
         uint256 excess = msg.value - priceInETH;
         totalTokensSold += _amount;
@@ -193,13 +192,12 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using USDT
     /// @param _amount - Amount of tokens to buy
     function buyWithUSDT(uint256 _amount) external notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
-        uint256 priceInUsdt = getPriceInUSDT(_amount);
-        uint256 priceInETH = getPriceInETH(_amount);
+        (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
         uint256 allowance = usdtToken.allowance(
             _msgSender(),
             address(this)
         );
-        if(priceInUsdt > allowance) revert NotEnoughAllowance(allowance, priceInUsdt);
+        if(priceInUSDT > allowance) revert NotEnoughAllowance(allowance, priceInUSDT);
         totalTokensSold += _amount;
         purchasedTokens[_msgSender()] += _amount * 1e18;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
@@ -208,12 +206,12 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         usdtToken.safeTransferFrom(
             _msgSender(),
             owner(),
-            priceInUsdt
+            priceInUSDT
         );
         emit TokensBought(
             _msgSender(),
             _amount,
-            priceInUsdt,
+            priceInUSDT,
             priceInETH,
             block.timestamp
         );
@@ -250,22 +248,18 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         return _calculatePriceInUSDTForConditions(totalTokensSold, 0, 0);
     }
 
-    /// @notice Helper function to calculate ETH price for given amount
+    /// @notice Helper function to calculate price in ETH and USDT for given amount
     /// @param _amount - Amount of tokens to buy
-    /// @notice Will return value in 1e18 format
-    function getPriceInETH(uint256 _amount) public view returns (uint256 ethAmount) {
+    /// @return priceInETH - price for passed amount of tokens in ETH in 1e18 format
+    /// @return priceInUSDT - price for passed amount of tokens in USDT in 1e6 format
+    function getPrice(uint256 _amount) public view returns (uint256 priceInETH, uint256 priceInUSDT) {
+        if (_amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX]) revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
+        priceInUSDT = _calculatePriceInUSDTForConditions(_amount, currentStage, totalTokensSold);
+
         (uint80 roundID, int256 price, , uint256 updatedAt, uint80 answeredInRound) = oracle.latestRoundData();
         require(answeredInRound >= roundID, "Stale price");
         require(price > 0, "Invalid price");
-        ethAmount = getPriceInUSDT(_amount) * 1e20  / uint256(price);//We need 1e20 to get resulting value in wei(1e18)
-    }
-
-    /// @notice Calculate price in USDT
-    /// @param _amount - Amount of tokens to calculate price
-    /// @notice Will return value in 1e6 format
-    function getPriceInUSDT(uint256 _amount) public view returns (uint256) {
-        require(_amount + totalTokensSold <= limitPerStage[MAX_STAGE_INDEX], "Insufficient funds");
-        return _calculatePriceInUSDTForConditions(_amount, currentStage, totalTokensSold);
+        priceInETH = priceInUSDT * 1e20  / uint256(price);//We need 1e20 to get resulting value in wei(1e18)
     }
 
     /// @notice For sending ETH from contract

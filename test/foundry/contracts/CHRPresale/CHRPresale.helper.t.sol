@@ -60,16 +60,16 @@ contract CHRPresaleHelper is Test {
     function helper_purchaseTokens(address _user, uint256 _amount, address _owner) public {
         uint256 startTime = block.timestamp;
         vm.warp(presaleContract.saleStartTime());
-        uint256 ethPrice = presaleContract.getPriceInETH(_amount);
+        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
 
         vm.prank(presaleContract.owner());
         presaleContract.transferOwnership(_owner);
 
-        vm.deal(_user, ethPrice);
+        vm.deal(_user, priceInETH);
         deal(address(tokenContract), address(presaleContract), _amount * 1e18, true);
 
         vm.prank(_user);
-        presaleContract.buyWithEth{value:ethPrice}(_amount);
+        presaleContract.buyWithEth{value:priceInETH}(_amount);
         vm.warp(startTime);
     }
 }

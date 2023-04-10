@@ -45,8 +45,8 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         vm.prank(presaleContract.owner());
         presaleContract.transferOwnership(_owner);
 
-        uint256 ethCost = presaleContract.getPriceInETH(_amount);
-        deal(_user, ethCost);
+        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        deal(_user, priceInETH);
 
         uint256 balanceUserBefore = address(_user).balance;
         uint256 balanceOwnerBefore = address(_owner).balance;
@@ -57,18 +57,18 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         emit TokensBought(
             _user,
             _amount,
-            presaleContract.getPriceInUSDT(_amount),
-            presaleContract.getPriceInETH(_amount),
+            priceInUSDT,
+            priceInETH,
             block.timestamp
         );
 
 
 
         vm.prank(_user);
-        presaleContract.buyWithEth{value : ethCost}(_amount);
+        presaleContract.buyWithEth{value : priceInETH}(_amount);
 
-        assertEq(address(_user).balance, balanceUserBefore - ethCost);
-        assertEq(address(_owner).balance, balanceOwnerBefore + ethCost);
+        assertEq(address(_user).balance, balanceUserBefore - priceInETH);
+        assertEq(address(_owner).balance, balanceOwnerBefore + priceInETH);
         assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount * 1e18);
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
@@ -98,8 +98,8 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
-        uint256 usdtCost = presaleContract.getPriceInUSDT(_amount);
-        deal(address(mockUSDT), _user, usdtCost, true);
+        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        deal(address(mockUSDT), _user, priceInUSDT, true);
 
         uint256 balanceUserBefore = mockUSDTWrapped.balanceOf(_user);
         uint256 balanceOwnerBefore = mockUSDTWrapped.balanceOf(presaleContract.owner());
@@ -112,7 +112,7 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
             abi.encodeWithSignature(
                 "approve(address,uint256)",
                 address(presaleContract),
-                usdtCost
+                priceInUSDT
             )
         );
 
@@ -120,16 +120,16 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         emit TokensBought(
             _user,
             _amount,
-            presaleContract.getPriceInUSDT(_amount),
-            presaleContract.getPriceInETH(_amount),
+            priceInUSDT,
+            priceInETH,
             block.timestamp
         );
 
         vm.prank(_user);
         presaleContract.buyWithUSDT(_amount);
 
-        assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - usdtCost);
-        assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + usdtCost);
+        assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - priceInUSDT);
+        assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInUSDT);
         assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount * 1e18);
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
@@ -160,10 +160,10 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
-        uint256 usdtCost = presaleContract.getPriceInUSDT(_amount);
+        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
 
         vm.expectRevert(
-            abi.encodeWithSelector(NotEnoughAllowance.selector, 0, usdtCost)
+            abi.encodeWithSelector(NotEnoughAllowance.selector, 0, priceInUSDT)
         );
 
         vm.prank(_user);
