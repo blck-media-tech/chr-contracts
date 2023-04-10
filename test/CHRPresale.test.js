@@ -19,7 +19,7 @@ describe("CHRPresale", function () {
   }
 
   async function deployChainlinkPriceFeedStubFixture(creator) {
-    const ChainlinkPriceFeedFactory = await hre.ethers.getContractFactory("MockAggregator");
+    const ChainlinkPriceFeedFactory = await hre.ethers.getContractFactory("ChainLinkAggregatorMock");
     return await ChainlinkPriceFeedFactory.connect(creator).deploy();
   }
 
@@ -273,8 +273,8 @@ describe("CHRPresale", function () {
     }
 
     async function purchaseTokensFixture(contract, signer, amount) {
-      const priceInWei = await contract.connect(signer).getPriceInETH(amount);
-      await contract.connect(signer).buyWithEth(amount, { value: priceInWei });
+      const {priceInETH} = await contract.connect(signer).getPrice(amount);
+      await contract.connect(signer).buyWithEth(amount, { value: priceInETH });
     }
 
     async function timeTravelFixture(targetTime) {
@@ -633,7 +633,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get wei price
-        const weiPrice = await presale.getPriceInETH(tokensToPurchase);
+        const {priceInETH: weiPrice} = await presale.getPrice(tokensToPurchase);
 
         //Get values before transaction
         const purchaseTokensAmountBefore = await presale.purchasedTokens(users.creator.address);
@@ -663,7 +663,7 @@ describe("CHRPresale", function () {
         const tokensToPurchase = 1000;
 
         //Get wei price
-        const weiPrice = await presale.getPriceInETH(tokensToPurchase);
+        const {priceInETH: weiPrice} = await presale.getPrice(tokensToPurchase);
 
         //Buy with eth
         const buyWithEthTx = presale.connect(users.creator).buyWithEth(tokensToPurchase, { value: weiPrice });
@@ -681,7 +681,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get wei price
-        const weiPrice = await presale.getPriceInETH(tokensToPurchase);
+        const {priceInETH: weiPrice} = await presale.getPrice(tokensToPurchase);
 
         //Buy with eth
         const buyWithEthTx = presale
@@ -701,7 +701,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get wei price
-        const weiPrice = await presale.getPriceInETH(tokensToPurchase);
+        const {priceInETH: weiPrice} = await presale.getPrice(tokensToPurchase);
 
         //Buy with eth
         const buyWithEthTx = presale
@@ -721,7 +721,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get wei price
-        const weiPrice = await presale.getPriceInETH(tokensToPurchase);
+        const {priceInETH: weiPrice} = await presale.getPrice(tokensToPurchase);
 
         //Buy with eth
         const buyWithEthTx = presale.connect(users.creator).buyWithEth(tokensToPurchase, { value: weiPrice });
@@ -739,8 +739,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get wei price
-        const weiPrice = await presale.getPriceInETH(tokensToPurchase);
-        const USDTPrice = await presale.getPriceInUSDT(tokensToPurchase);
+        const {priceInETH: weiPrice, priceInUSDT: USDTPrice} = await presale.getPrice(tokensToPurchase);
 
         //Buy with eth
         const buyWithEthTx = presale.connect(users.creator).buyWithEth(tokensToPurchase, { value: weiPrice });
@@ -765,7 +764,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get usdt price
-        const USDTPrice = await presale.getPriceInUSDT(tokensToPurchase);
+        const { priceInUSDT:USDTPrice } = await presale.getPrice(tokensToPurchase);
 
         //Add allowance to contract
         await USDT.connect(users.creator).approve(presale.address, USDTPrice);
@@ -798,7 +797,7 @@ describe("CHRPresale", function () {
         const tokensToPurchase = 1000;
 
         //Get usdt price
-        const USDTPrice = await presale.getPriceInUSDT(tokensToPurchase);
+        const { priceInUSDT:USDTPrice } = await presale.getPrice(tokensToPurchase);
 
         //Add allowance to contract
         await USDT.connect(users.creator).approve(presale.address, USDTPrice);
@@ -834,7 +833,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get usdt price
-        const USDTPrice = await presale.getPriceInUSDT(tokensToPurchase);
+        const { priceInUSDT:USDTPrice } = await presale.getPrice(tokensToPurchase);
 
         //Add allowance to contract
         await USDT.connect(users.creator).approve(presale.address, USDTPrice);
@@ -855,7 +854,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get usdt price
-        const USDTPrice = await presale.getPriceInUSDT(tokensToPurchase);
+        const { priceInUSDT:USDTPrice } = await presale.getPrice(tokensToPurchase);
 
         //Add allowance to contract
         await USDT.connect(users.creator).approve(presale.address, USDTPrice);
@@ -876,7 +875,7 @@ describe("CHRPresale", function () {
         await timeTravelFixture(saleStartTime + 1);
 
         //Get usdt price
-        const USDTPrice = await presale.getPriceInUSDT(tokensToPurchase);
+        const { priceInUSDT:USDTPrice } = await presale.getPrice(tokensToPurchase);
 
         //Add allowance to contract
         await USDT.connect(users.creator).approve(presale.address, USDTPrice);
@@ -1086,7 +1085,7 @@ describe("CHRPresale", function () {
       });
     });
 
-    describe("'getPriceInETH' function", function () {
+    describe("'getPrice' function", function () {
       it("should calculate correct wei price", async function () {
         //Set values
         const { presale, stagePrice, ChainlinkPriceFeed } = await deployPresaleFixture();
@@ -1095,39 +1094,22 @@ describe("CHRPresale", function () {
         const latestPrice = await ChainlinkPriceFeed.latestRoundData();
 
         //calculate expected price
-        const expectedPrice = stagePrice[0]
+        const expectedPriceEth = stagePrice[0]
           .mul(tokensToPurchase)
           .mul(BigNumber.from(10).pow(20))
           .div(latestPrice[1]);
+        const expectedPriceUSDT = stagePrice[0].mul(tokensToPurchase);
 
         //Calculate wei price
-        const getPriceInETHTx = presale.getPriceInETH(tokensToPurchase);
+        const getPriceTx = presale.getPrice(tokensToPurchase);
 
         //Assert transaction was successful
-        await expect(getPriceInETHTx).not.to.be.reverted;
+        await expect(getPriceTx).not.to.be.reverted;
 
+        const {priceInETH, priceInUSDT} = await getPriceTx;
         //Assert price with expected
-        expect(await getPriceInETHTx).to.equal(expectedPrice);
-      });
-    });
-
-    describe("'getPriceInUSDT' function", function () {
-      it("should calculate correct USDT price", async function () {
-        //Set values
-        const { presale, stagePrice } = await deployPresaleFixture();
-        const tokensToPurchase = 1000;
-
-        //calculate expected price
-        const expectedPrice = stagePrice[0].mul(tokensToPurchase);
-
-        //Calculate USDT price
-        const getPriceInUSDTTx = presale.getPriceInUSDT(tokensToPurchase);
-
-        //Assert transaction was successful
-        await expect(getPriceInUSDTTx).not.to.be.reverted;
-
-        //Assert price with expected
-        expect(await getPriceInUSDTTx).to.equal(expectedPrice);
+        expect(priceInETH).to.equal(expectedPriceEth);
+        expect(priceInUSDT).to.equal(expectedPriceUSDT);
       });
     });
   });
