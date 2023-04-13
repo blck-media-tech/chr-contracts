@@ -59,9 +59,9 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Checks that it is now possible to purchase passed amount tokens
     /// @param amount - the number of tokens to verify the possibility of purchase
     modifier verifyPurchase(uint256 amount) {
-        if(block.timestamp < saleStartTime || block.timestamp >= saleEndTime) revert InvalidTimeframe();
-        if(amount == 0) revert BuyAtLeastOneToken();
-        if(amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX]) revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
+        if (block.timestamp < saleStartTime || block.timestamp >= saleEndTime) revert InvalidTimeframe();
+        if (amount == 0) revert BuyAtLeastOneToken();
+        if (amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX]) revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
         _;
     }
 
@@ -123,7 +123,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function addToBlacklist(address[] calldata _users) external onlyOwner {
         uint256 usersAmount = _users.length;
         uint256 i = 0;
-        while(i<usersAmount)
+        while (i < usersAmount)
             blacklist[_users[i++]] = true;
     }
 
@@ -132,7 +132,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function removeFromBlacklist(address[] calldata _users) external onlyOwner {
         uint256 usersAmount = _users.length;
         uint256 i = 0;
-        while(i<usersAmount)
+        while (i < usersAmount)
             blacklist[_users[i++]] = false;
     }
 
@@ -147,9 +147,9 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _saleStartTime - New sales start time
     /// @param _saleEndTime   - New sales end time
     function configureSaleTimeframe(uint256 _saleStartTime, uint256 _saleEndTime) external onlyOwner {
-        if(saleStartTime != _saleStartTime)
+        if (saleStartTime != _saleStartTime)
             saleStartTime = _saleStartTime;
-        if(saleEndTime != _saleEndTime)
+        if (saleEndTime != _saleEndTime)
             saleEndTime = _saleEndTime;
         emit SaleTimeUpdated(
             _saleStartTime,
@@ -166,16 +166,23 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         claimStartTime = _claimStartTime;
     }
 
-    /// @notice To buy into a presale using ETH
+    /// @notice To buy into a presale using ETH without referrer
     /// @param _amount - Amount of tokens to buy
-    function buyWithEth(uint256 _amount) external payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
+    function buyWithEth(uint256 _amount) external payable {
+        buyWithEthAsReferral(_amount, "");
+    }
+
+    /// @notice To buy into a presale using ETH with referrer
+    /// @param _amount - Amount of tokens to buy
+    /// @param _referrerId - id of the referrer
+    function buyWithEthAsReferral(uint256 _amount, string memory _referrerId) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
         (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
-        if(msg.value < priceInETH) revert NotEnoughETH(msg.value, priceInETH);
+        if (msg.value < priceInETH) revert NotEnoughETH(msg.value, priceInETH);
         uint256 excess = msg.value - priceInETH;
         totalTokensSold += _amount;
         purchasedTokens[_msgSender()] += _amount * 1e18;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
-        if (stageAfterPurchase>currentStage)
+        if (stageAfterPurchase > currentStage)
             currentStage = stageAfterPurchase;
         _sendValue(payable(owner()), priceInETH);
         if (excess > 0)
@@ -185,23 +192,31 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
             _amount,
             priceInUSDT,
             priceInETH,
+            _referrerId,
             block.timestamp
         );
     }
 
-    /// @notice To buy into a presale using USDT
+    /// @notice To buy into a presale using USDT without referrer
     /// @param _amount - Amount of tokens to buy
-    function buyWithUSDT(uint256 _amount) external notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
+    function buyWithUSDT(uint256 _amount) external {
+        buyWithUSDTAsReferral(_amount, "");
+    }
+
+    /// @notice To buy into a presale using USDT with referrer
+    /// @param _amount - Amount of tokens to buy
+    /// @param _referrerId - id of the referrer
+    function buyWithUSDTAsReferral(uint256 _amount, string memory _referrerId) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
         (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
         uint256 allowance = usdtToken.allowance(
             _msgSender(),
             address(this)
         );
-        if(priceInUSDT > allowance) revert NotEnoughAllowance(allowance, priceInUSDT);
+        if (priceInUSDT > allowance) revert NotEnoughAllowance(allowance, priceInUSDT);
         totalTokensSold += _amount;
         purchasedTokens[_msgSender()] += _amount * 1e18;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
-        if (stageAfterPurchase>currentStage)
+        if (stageAfterPurchase > currentStage)
             currentStage = stageAfterPurchase;
         usdtToken.safeTransferFrom(
             _msgSender(),
@@ -213,16 +228,17 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
             _amount,
             priceInUSDT,
             priceInETH,
+            _referrerId,
             block.timestamp
         );
     }
 
     /// @notice To claim tokens after claiming starts
     function claim() external whenNotPaused {
-        if(block.timestamp < claimStartTime || claimStartTime == 0) revert InvalidTimeframe();
-        if(hasClaimed[_msgSender()]) revert AlreadyClaimed();
+        if (block.timestamp < claimStartTime || claimStartTime == 0) revert InvalidTimeframe();
+        if (hasClaimed[_msgSender()]) revert AlreadyClaimed();
         uint256 amount = purchasedTokens[_msgSender()];
-        if(amount == 0) revert NothingToClaim();
+        if (amount == 0) revert NothingToClaim();
         hasClaimed[_msgSender()] = true;
         IERC20(saleToken).safeTransfer(_msgSender(), amount);
         emit TokensClaimed(_msgSender(), amount, block.timestamp);
@@ -235,7 +251,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
 
     /// @notice Returns amount of tokens sold on current stage
     function getSoldOnCurrentStage() external view returns (uint256 soldOnCurrentStage) {
-        soldOnCurrentStage = totalTokensSold - ((currentStage == 0)? 0 : limitPerStage[currentStage-1]);
+        soldOnCurrentStage = totalTokensSold - ((currentStage == 0) ? 0 : limitPerStage[currentStage - 1]);
     }
 
     /// @notice Returns presale last stage token amount limit
@@ -259,7 +275,8 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         (uint80 roundID, int256 price, , uint256 updatedAt, uint80 answeredInRound) = oracle.latestRoundData();
         require(answeredInRound >= roundID, "Stale price");
         require(price > 0, "Invalid price");
-        priceInETH = priceInUSDT * 1e20  / uint256(price);//We need 1e20 to get resulting value in wei(1e18)
+        priceInETH = priceInUSDT * 1e20 / uint256(price);
+        //We need 1e20 to get resulting value in wei(1e18)
     }
 
     /// @notice For sending ETH from contract
@@ -282,7 +299,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
             uint256 currentStageAmount = limitPerStage[_currentStage] - _totalTokensSold;
             uint256 nextStageAmount = _amount - currentStageAmount;
             cost = currentStageAmount * pricePerStage[_currentStage]
-                + _calculatePriceInUSDTForConditions(nextStageAmount, _currentStage + 1, limitPerStage[_currentStage]);
+            + _calculatePriceInUSDTForConditions(nextStageAmount, _currentStage + 1, limitPerStage[_currentStage]);
         }
 
         return cost;

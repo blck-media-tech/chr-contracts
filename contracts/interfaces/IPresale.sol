@@ -19,6 +19,7 @@ interface IPresale {
         uint256 amount,
         uint256 totalCostInUsd,
         uint256 totalCostInETH,
+        string indexed referrerId,
         uint256 timestamp
     );
 

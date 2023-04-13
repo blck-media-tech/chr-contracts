@@ -34,6 +34,44 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.currentStage(), 0);
     }
 
+    function testFuzz_BuyWithEthAsReferral(uint256 _amount, address _user, address _owner, string memory _referrerId) public {
+        vm.assume(address(_owner) != address(0));
+        vm.assume(_owner != _user);
+        vm.assume(_owner >= address(10));
+        vm.assume(_owner.code.length == 0);
+        vm.assume(_amount > 0);
+        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+
+        vm.prank(presaleContract.owner());
+        presaleContract.transferOwnership(_owner);
+
+        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        deal(_user, priceInETH);
+
+        uint256 balanceUserBefore = address(_user).balance;
+        uint256 balanceOwnerBefore = address(_owner).balance;
+        uint256 tokensPurchasedBefore = presaleContract.purchasedTokens(_user);
+        uint256 totalTokensSoldBefore = presaleContract.totalTokensSold();
+
+        vm.expectEmit(true, true, true, true);
+        emit TokensBought(
+            _user,
+            _amount,
+            priceInUSDT,
+            priceInETH,
+            _referrerId,
+            block.timestamp
+        );
+
+        vm.prank(_user);
+        presaleContract.buyWithEthAsReferral{value : priceInETH}(_amount, _referrerId);
+
+        assertEq(address(_user).balance, balanceUserBefore - priceInETH);
+        assertEq(address(_owner).balance, balanceOwnerBefore + priceInETH);
+        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount * 1e18);
+        assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
+    }
+
     function testFuzz_BuyWithEth(uint256 _amount, address _user, address _owner) public {
         vm.assume(address(_owner) != address(0));
         vm.assume(_owner != _user);
@@ -59,10 +97,9 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
             _amount,
             priceInUSDT,
             priceInETH,
+            "",
             block.timestamp
         );
-
-
 
         vm.prank(_user);
         presaleContract.buyWithEth{value : priceInETH}(_amount);
@@ -91,6 +128,48 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
 
         vm.prank(_user);
         presaleContract.buyWithEth(_amount);
+    }
+
+    function testFuzz_BuyWithUSDTAsReferral(address _user, uint256 _amount, string memory _referrerId) public {
+        vm.assume(_user != address(0));
+        vm.assume(_amount > 0);
+        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+
+        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        deal(address(mockUSDT), _user, priceInUSDT, true);
+
+        uint256 balanceUserBefore = mockUSDTWrapped.balanceOf(_user);
+        uint256 balanceOwnerBefore = mockUSDTWrapped.balanceOf(presaleContract.owner());
+        uint256 tokensPurchasedBefore = presaleContract.purchasedTokens(_user);
+
+        uint256 totalTokensSoldBefore = presaleContract.totalTokensSold();
+
+        vm.prank(_user);
+        address(mockUSDT).call(
+            abi.encodeWithSignature(
+                "approve(address,uint256)",
+                address(presaleContract),
+                priceInUSDT
+            )
+        );
+
+        vm.expectEmit(true, true, true, true);
+        emit TokensBought(
+            _user,
+            _amount,
+            priceInUSDT,
+            priceInETH,
+            _referrerId,
+            block.timestamp
+        );
+
+        vm.prank(_user);
+        presaleContract.buyWithUSDTAsReferral(_amount, _referrerId);
+
+        assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - priceInUSDT);
+        assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInUSDT);
+        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount * 1e18);
+        assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
     function testFuzz_BuyWithUSDT(address _user, uint256 _amount) public {
@@ -122,6 +201,7 @@ contract CHRPresaleTest_Presale is Test, CHRPresaleHelper, IPresale {
             _amount,
             priceInUSDT,
             priceInETH,
+            "",
             block.timestamp
         );
 
