@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "contracts/CHRPresale.sol";
 import "contracts/CHRToken.sol";
 import "contracts/test/ChainLinkAggregator.mock.sol";
 
+/// @title Contract for exposing some internal funcitons and creating workarounds
 contract CHRPresaleHarness is CHRPresale {
     constructor(
         address _saleToken,
@@ -17,27 +18,40 @@ contract CHRPresaleHarness is CHRPresale {
         uint256[4] memory _pricePerStage
     ) CHRPresale(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
+    /// @notice exposing internal function for testing
     function exposed_sendValue(address payable _recipient, uint256 _ethAmount) public {
         _sendValue(_recipient, _ethAmount);
     }
 
-    function exposed_calculatePriceInUSDTForConditions(uint256 _amount, uint256 _currentStage, uint256 _totalTokensSold) public view returns (uint256 cost) {
-        cost = _calculatePriceInUSDTForConditions(_amount, _currentStage, _totalTokensSold);
+    /// @notice exposing internal function for testing
+    function exposed_calculatePriceInUSDTForConditions(
+        uint256 _amount,
+        uint256 _currentStage,
+        uint256 _totalTokensSold
+    ) public view returns (uint256) {
+        return _calculatePriceInUSDTForConditions(_amount, _currentStage, _totalTokensSold);
     }
 
+    /// @notice exposing internal function for testing
     function exposed_getStageByTotalSoldAmount() public view returns (uint8) {
         return _getStageByTotalSoldAmount();
     }
 
+    /// @notice Workaround for manual setting totalTokensSold value
+    /// @dev should be used when test depends only on amount of sold tokens
     function workaround_setTotalTokensSold(uint256 _amount) public {
         totalTokensSold = _amount;
     }
 
+    /// @notice Workaround for manual setting currentStage value
+    /// @dev should be used when test depends only on current stage
+    /// @dev Note: purchasing tokens will set currentStage back to correct value
     function workaround_setCurrentStage(uint8 _currentStage) public {
         currentStage = _currentStage;
     }
 }
 
+/// @title Helper contract with useful stuff for tests
 contract CHRPresaleHelper is Test {
     CHRPresaleHarness presaleContract;
     CHRToken tokenContract;
@@ -57,6 +71,8 @@ contract CHRPresaleHelper is Test {
         mockUSDTWrapped = IERC20(mockUSDT);
     }
 
+    /// @notice Helper for purchasing tokens
+    /// @dev should be used if test is not dependent on way of purchasing but on the fact it was and amount of purchased tokens
     function helper_purchaseTokens(address _user, uint256 _amount, address _owner) public {
         uint256 startTime = block.timestamp;
         vm.warp(presaleContract.saleStartTime());
@@ -69,7 +85,7 @@ contract CHRPresaleHelper is Test {
         deal(address(tokenContract), address(presaleContract), _amount * 1e18, true);
 
         vm.prank(_user);
-        presaleContract.buyWithEth{value:priceInETH}(_amount);
+        presaleContract.buyWithEth{ value: priceInETH }(_amount);
         vm.warp(startTime);
     }
 }

@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
 import "contracts/interfaces/IPresale.sol";
 import "./CHRPresale.helper.t.sol";
 
-contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
+/// @title Test for Chancer presale functions that should be independetn from time they are executed
+contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
     event Paused(address account);
     event Unpaused(address account);
 
+    /// @notice Expected state - contract deployed
     function setUp() public virtual {
         uint256 saleStartTime = block.timestamp + timeDelay;
         uint256 saleEndTime = block.timestamp + timeDelay * 2;
@@ -23,7 +24,8 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         );
     }
 
-    function test_SetUpState() public {
+    /// @notice Ensure that test initial state was set up correctly
+    function test_SetUpState() public virtual {
         assertEq(address(presaleContract.saleToken()), address(tokenContract));
         assertEq(address(presaleContract.oracle()), address(mockAggregator));
         assertEq(address(presaleContract.usdtToken()), address(mockUSDT));
@@ -35,6 +37,10 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.paused(), false);
     }
 
+    /// @custom:function pause
+    /// @notice Expected result:
+    ///         - contract should be paused
+    ///         - Paused event emitted
     function test_Pause() public {
         vm.expectEmit(true, true, true, true);
         emit Paused(address(this));
@@ -43,6 +49,8 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.paused(), true);
     }
 
+    /// @custom:function pause
+    /// @notice Should be reverted if contract already paused
     function test_Pause_RevertWhen_AlreadyPaused() public {
         presaleContract.pause();
         assertEq(presaleContract.paused(), true);
@@ -53,6 +61,8 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.paused(), true);
     }
 
+    /// @custom:function pause
+    /// @notice Should be reverted if caller is not the owner
     function testFuzz_Pause_RevertOn_NonOwnerCall(address _nonOwner) public {
         vm.assume(_nonOwner != address(this));
         vm.expectRevert("Ownable: caller is not the owner");
@@ -61,6 +71,10 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         presaleContract.pause();
     }
 
+    /// @custom:function unpause
+    /// @notice Expected result:
+    ///         - contract should be unpaused
+    ///         - Unpaused event emitted
     function test_Unpause() public {
         presaleContract.pause();
         assertEq(presaleContract.paused(), true);
@@ -72,12 +86,16 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.paused(), false);
     }
 
+    /// @custom:function unpause
+    /// @notice Should be reverted if contract already unpaused
     function test_Unpause_RevertWhen_NonPaused() public {
         vm.expectRevert("Pausable: not paused");
 
         presaleContract.unpause();
     }
 
+    /// @custom:function unpause
+    /// @notice Should be reverted if caller is not the owner
     function testFuzz_Unpause_RevertOn_NonOwnerCall(address _nonOwner) public {
         presaleContract.pause();
         assertEq(presaleContract.paused(), true);
@@ -89,6 +107,9 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         presaleContract.unpause();
     }
 
+    /// @custom:function addToBlacklist
+    /// @notice Expected result:
+    ///         - all passed addresses added to blacklist
     function testFuzz_AddToBlacklist(address[] calldata _users) public {
         presaleContract.addToBlacklist(_users);
 
@@ -97,6 +118,8 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         }
     }
 
+    /// @custom:function addToBlacklist
+    /// @notice Should be reverted if caller is not the owner
     function testFuzz_AddToBlacklist_RevertOn_NonOwnerCall(address[] calldata _users, address _nonOwner) public {
         vm.assume(_nonOwner != address(this));
         vm.expectRevert("Ownable: caller is not the owner");
@@ -105,6 +128,9 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         presaleContract.addToBlacklist(_users);
     }
 
+    /// @custom:function removeFromBlacklist
+    /// @notice Expected result:
+    ///         - all passed addresses removed from blacklist
     function testFuzz_RemoveFromBlacklist(address[] calldata _users) public {
         presaleContract.addToBlacklist(_users);
 
@@ -119,6 +145,8 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         }
     }
 
+    /// @custom:function removeFromBlacklist
+    /// @notice Should be reverted if caller is not the owner
     function testFuzz_RemoveFromBlacklist_RevertOn_NonOwnerCall(address[] calldata _users, address _nonOwner) public {
         vm.assume(_nonOwner != address(this));
 
@@ -134,7 +162,10 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         presaleContract.addToBlacklist(_users);
     }
 
-    function testFuzz_rescueERC20(uint256 _amount) public {
+    /// @custom:function rescueERC20
+    /// @notice Expected result:
+    ///         - all passed addresses removed from blacklist
+    function testFuzz_RescueERC20(uint256 _amount) public {
         ERC20 token = new ERC20("Test ERC20", "TERC");
         assertEq(token.balanceOf(address(presaleContract)), 0);
         deal(address(token), address(presaleContract), _amount, true);
@@ -147,7 +178,10 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(token.balanceOf(address(this)), _amount);
     }
 
-    function testFuzz_rescueERC20_RevertOn_NonOwnerCall(uint256 _amount, address _nonOwner) public {
+    /// @custom:function rescueERC20
+    /// @notice Should be reverted if caller is not the owner
+    function testFuzz_RescueERC20_RevertOn_NonOwnerCall(uint256 _amount, address _nonOwner) public {
+        vm.assume(_nonOwner != address(this));
         ERC20 token = new ERC20("Test ERC20", "TERC");
         assertEq(token.balanceOf(address(presaleContract)), 0);
         deal(address(token), address(presaleContract), _amount, true);
@@ -160,6 +194,9 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         presaleContract.rescueERC20(address(token), _amount);
     }
 
+    /// @custom:function configureSaleTimeframe
+    /// @notice Expected result:
+    ///         - saleStartTime and saleEndTime set to passed values
     function testFuzz_ConfigureSaleTimeframe(uint256 _saleStartTime, uint256 _saleEndTime) public {
         vm.expectEmit(true, true, true, true);
         emit SaleTimeUpdated(_saleStartTime, _saleEndTime, block.timestamp);
@@ -170,7 +207,12 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.saleEndTime(), _saleEndTime);
     }
 
-    function testFuzz_ConfigureSaleTimeframe_RevertOn_NonOwnerCall(uint256 _saleStartTime, uint256 _saleEndTime, address _nonOwner) public {
+    /// @notice Should be reverted if caller is not the owner
+    function testFuzz_ConfigureSaleTimeframe_RevertOn_NonOwnerCall(
+        uint256 _saleStartTime,
+        uint256 _saleEndTime,
+        address _nonOwner
+    ) public {
         vm.assume(_nonOwner != address(presaleContract.owner()));
         vm.expectRevert("Ownable: caller is not the owner");
 
@@ -178,6 +220,9 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         presaleContract.configureSaleTimeframe(_saleStartTime, _saleEndTime);
     }
 
+    /// @custom:function configureClaim
+    /// @notice Expected result:
+    ///         - claimStartTime
     function testFuzz_ConfigureClaim(uint256 _totalTokensSold, uint256 _claimStartTime) public {
         vm.assume(type(uint256).max / 1e18 > _totalTokensSold);
         presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
@@ -188,7 +233,12 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(presaleContract.claimStartTime(), _claimStartTime);
     }
 
-    function testFuzz_ConfigureClaim_RevertOn_NonOwnerCall(uint256 _totalTokensSold, uint256 _claimStartTime, address _nonOwner) public {
+    /// @notice Should be reverted if caller is not the owner
+    function testFuzz_ConfigureClaim_RevertOn_NonOwnerCall(
+        uint256 _totalTokensSold,
+        uint256 _claimStartTime,
+        address _nonOwner
+    ) public {
         vm.assume(type(uint256).max / 1e18 > _totalTokensSold);
         vm.assume(_nonOwner != presaleContract.owner());
         presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
@@ -201,6 +251,9 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         presaleContract.configureClaim(_claimStartTime);
     }
 
+    /// @custom:function getCurrentPrice
+    /// @notice Expected result:
+    ///         - returned price at the current stage
     function test_GetCurrentPrice() public {
         for (uint8 i = 0; i <= presaleContract.MAX_STAGE_INDEX(); i += 1) {
             presaleContract.workaround_setCurrentStage(i);
@@ -209,6 +262,9 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         }
     }
 
+    /// @custom:function getSoldOnCurrentStage
+    /// @notice Expected result:
+    ///         - returned amount of tokens sold on a current stage
     function testFuzz_GetSoldOnCurrentStage(uint256 _totalTokensSold) public {
         vm.assume(_totalTokensSold <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
         presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
@@ -219,6 +275,9 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(soldOnCurrentStage, presaleContract.getSoldOnCurrentStage());
     }
 
+    /// @custom:function totalSoldPrice
+    /// @notice Expected result:
+    ///         - returned price of all sold tokens in USDT
     function testFuzz_TotalSoldPrice(uint256 _totalTokensSold) public {
         vm.assume(_totalTokensSold <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
         presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
@@ -231,11 +290,16 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
             sum += pricePerStage[i] * (limitPerStage[i] - (i == 0 ? 0 : limitPerStage[i - 1]));
         }
 
-        sum += pricePerStage[currentStage] * (_totalTokensSold - (currentStage == 0 ? 0 : limitPerStage[currentStage - 1]));
+        sum +=
+            pricePerStage[currentStage] *
+            (_totalTokensSold - (currentStage == 0 ? 0 : limitPerStage[currentStage - 1]));
 
         assertEq(presaleContract.totalSoldPrice(), sum);
     }
 
+    /// @custom:function sendValue
+    /// @notice Expected result:
+    ///         - passed amounts of tokens sent to passed address
     function testFuzz_SendValue(address payable _user, uint256 _amount) public {
         vm.assume(_user.code.length == 0);
         vm.assume(_user >= address(10));
@@ -246,14 +310,16 @@ contract CHRPresaleTest_TimeIndependent is Test, CHRPresaleHelper, IPresale {
         assertEq(address(_user).balance, balanceBefore + _amount);
     }
 
+    /// @custom:function getStageByTotalSoldAmount
+    /// @notice Expected result:
+    ///         - returned stage that should be if totalTokensSold equal to passed value
     function testFuzz_GetStageByTotalSoldAmount(uint256 _totalTokensSold) public {
         vm.assume(_totalTokensSold <= pricePerStage[presaleContract.MAX_STAGE_INDEX()]);
         presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
 
         uint8 stageIndex = presaleContract.MAX_STAGE_INDEX();
         while (stageIndex > 0) {
-            if (limitPerStage[stageIndex - 1] <= _totalTokensSold)
-                break;
+            if (limitPerStage[stageIndex - 1] <= _totalTokensSold) break;
             stageIndex -= 1;
         }
 

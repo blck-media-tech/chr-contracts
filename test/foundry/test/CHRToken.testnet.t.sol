@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "contracts/test/CHRToken.testnet.sol";
 import "../contracts/CHRToken.t.sol";
 
 contract CHRTokenTestnetHarness is CHRTokenTestnet {
-    constructor (
-        uint256 _initialSupply
-    ) CHRTokenTestnet(_initialSupply){}
+    constructor(uint256 _initialSupply) CHRTokenTestnet(_initialSupply) {}
 
     function exposed_mint(address _user, uint256 _amount) public {
         _mint(_user, _amount);

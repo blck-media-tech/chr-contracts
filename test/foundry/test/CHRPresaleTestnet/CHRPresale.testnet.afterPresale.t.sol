@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
 import "contracts/interfaces/IPresale.sol";
 import "./CHRPresale.testnet.helper.t.sol";
 import "../../contracts/CHRPresale/CHRPresale.afterPresale.t.sol";
 
 contract CHRPresaleTestnetTest_AfterPresale is CHRPresaleTestnetHelper, CHRPresaleTest_AfterPresale {
-
     function setUp() public override {
         uint256 saleStartTime = block.timestamp + timeDelay;
         uint256 saleEndTime = block.timestamp + timeDelay * 2;
@@ -50,9 +48,7 @@ contract CHRPresaleTestnetTest_AfterPresale is CHRPresaleTestnetHelper, CHRPresa
 
         helper_prepareToClaim(_user, _amount);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(InvalidTimeframe.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
         presaleContract.claim();

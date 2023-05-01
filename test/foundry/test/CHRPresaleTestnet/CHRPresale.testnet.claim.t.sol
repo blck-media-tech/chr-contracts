@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
 import "contracts/interfaces/IPresale.sol";
 import "./CHRPresale.testnet.helper.t.sol";
 import "../../contracts/CHRPresale/CHRPresale.claim.t.sol";
