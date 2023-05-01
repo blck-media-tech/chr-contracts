@@ -61,7 +61,8 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     modifier verifyPurchase(uint256 amount) {
         if (block.timestamp < saleStartTime || block.timestamp >= saleEndTime) revert InvalidTimeframe();
         if (amount == 0) revert BuyAtLeastOneToken();
-        if (amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX]) revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
+        if (amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX])
+            revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
         _;
     }
 
@@ -87,8 +88,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         uint256 _saleEndTime,
         uint256[4] memory _limitPerStage,
         uint256[4] memory _pricePerStage
-    )
-    {
+    ) {
         if (_oracle == address(0)) revert ZeroAddress("Aggregator");
         if (_usdt == address(0)) revert ZeroAddress("USDT");
         if (_saleToken == address(0)) revert ZeroAddress("Sale token");
@@ -101,11 +101,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         saleStartTime = _saleStartTime;
         saleEndTime = _saleEndTime;
 
-        emit SaleTimeUpdated(
-            _saleStartTime,
-            _saleEndTime,
-            block.timestamp
-        );
+        emit SaleTimeUpdated(_saleStartTime, _saleEndTime, block.timestamp);
     }
 
     /// @notice To pause the presale
@@ -123,8 +119,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function addToBlacklist(address[] calldata _users) external onlyOwner {
         uint256 usersAmount = _users.length;
         uint256 i = 0;
-        while (i < usersAmount)
-            blacklist[_users[i++]] = true;
+        while (i < usersAmount) blacklist[_users[i++]] = true;
     }
 
     /// @notice To remove users from blacklist
@@ -132,8 +127,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function removeFromBlacklist(address[] calldata _users) external onlyOwner {
         uint256 usersAmount = _users.length;
         uint256 i = 0;
-        while (i < usersAmount)
-            blacklist[_users[i++]] = false;
+        while (i < usersAmount) blacklist[_users[i++]] = false;
     }
 
     /// @notice Returns total price of sold tokens
@@ -147,15 +141,9 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _saleStartTime - New sales start time
     /// @param _saleEndTime   - New sales end time
     function configureSaleTimeframe(uint256 _saleStartTime, uint256 _saleEndTime) external onlyOwner {
-        if (saleStartTime != _saleStartTime)
-            saleStartTime = _saleStartTime;
-        if (saleEndTime != _saleEndTime)
-            saleEndTime = _saleEndTime;
-        emit SaleTimeUpdated(
-            _saleStartTime,
-            _saleEndTime,
-            block.timestamp
-        );
+        if (saleStartTime != _saleStartTime) saleStartTime = _saleStartTime;
+        if (saleEndTime != _saleEndTime) saleEndTime = _saleEndTime;
+        emit SaleTimeUpdated(_saleStartTime, _saleEndTime, block.timestamp);
     }
 
     /// @notice To set the claim start time
@@ -175,26 +163,20 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using ETH with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithEthAsReferral(uint256 _amount, string memory _referrerId) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
+    function buyWithEthAsReferral(
+        uint256 _amount,
+        string memory _referrerId
+    ) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
         (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
         if (msg.value < priceInETH) revert NotEnoughETH(msg.value, priceInETH);
         uint256 excess = msg.value - priceInETH;
         totalTokensSold += _amount;
         purchasedTokens[_msgSender()] += _amount * 1e18;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
-        if (stageAfterPurchase > currentStage)
-            currentStage = stageAfterPurchase;
+        if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         _sendValue(payable(owner()), priceInETH);
-        if (excess > 0)
-            _sendValue(payable(_msgSender()), excess);
-        emit TokensBought(
-            _msgSender(),
-            _amount,
-            priceInUSDT,
-            priceInETH,
-            _referrerId,
-            block.timestamp
-        );
+        if (excess > 0) _sendValue(payable(_msgSender()), excess);
+        emit TokensBought(_msgSender(), _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
     }
 
     /// @notice To buy into a presale using USDT without referrer
@@ -206,31 +188,19 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using USDT with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithUSDTAsReferral(uint256 _amount, string memory _referrerId) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
+    function buyWithUSDTAsReferral(
+        uint256 _amount,
+        string memory _referrerId
+    ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
         (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
-        uint256 allowance = usdtToken.allowance(
-            _msgSender(),
-            address(this)
-        );
+        uint256 allowance = usdtToken.allowance(_msgSender(), address(this));
         if (priceInUSDT > allowance) revert NotEnoughAllowance(allowance, priceInUSDT);
         totalTokensSold += _amount;
         purchasedTokens[_msgSender()] += _amount * 1e18;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
-        if (stageAfterPurchase > currentStage)
-            currentStage = stageAfterPurchase;
-        usdtToken.safeTransferFrom(
-            _msgSender(),
-            owner(),
-            priceInUSDT
-        );
-        emit TokensBought(
-            _msgSender(),
-            _amount,
-            priceInUSDT,
-            priceInETH,
-            _referrerId,
-            block.timestamp
-        );
+        if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
+        usdtToken.safeTransferFrom(_msgSender(), owner(), priceInUSDT);
+        emit TokensBought(_msgSender(), _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
     }
 
     /// @notice To claim tokens after claiming starts
@@ -269,13 +239,14 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @return priceInETH - price for passed amount of tokens in ETH in 1e18 format
     /// @return priceInUSDT - price for passed amount of tokens in USDT in 1e6 format
     function getPrice(uint256 _amount) public view returns (uint256 priceInETH, uint256 priceInUSDT) {
-        if (_amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX]) revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
+        if (_amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX])
+            revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
         priceInUSDT = _calculatePriceInUSDTForConditions(_amount, currentStage, totalTokensSold);
 
-        (uint80 roundID, int256 price, , uint256 updatedAt, uint80 answeredInRound) = oracle.latestRoundData();
+        (uint80 roundID, int256 price, , , uint80 answeredInRound) = oracle.latestRoundData();
         require(answeredInRound >= roundID, "Stale price");
         require(price > 0, "Invalid price");
-        priceInETH = priceInUSDT * 1e20 / uint256(price);
+        priceInETH = (priceInUSDT * 1e20) / uint256(price);
         //We need 1e20 to get resulting value in wei(1e18)
     }
 
@@ -284,7 +255,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _ethAmount - Amount of ETH to send in wei
     function _sendValue(address payable _recipient, uint256 _ethAmount) internal {
         require(address(this).balance >= _ethAmount, "Low balance");
-        (bool success,) = _recipient.call{value : _ethAmount}("");
+        (bool success, ) = _recipient.call{ value: _ethAmount }("");
         require(success, "ETH Payment failed");
     }
 
@@ -292,14 +263,20 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _amount           - Amount of tokens to calculate price
     /// @param _currentStage     - Starting stage to calculate price
     /// @param _totalTokensSold  - Starting total token sold amount to calculate price
-    function _calculatePriceInUSDTForConditions(uint256 _amount, uint256 _currentStage, uint256 _totalTokensSold) internal view returns (uint256 cost){
+    function _calculatePriceInUSDTForConditions(
+        uint256 _amount,
+        uint256 _currentStage,
+        uint256 _totalTokensSold
+    ) internal view returns (uint256 cost) {
         if (_totalTokensSold + _amount <= limitPerStage[_currentStage]) {
             cost = _amount * pricePerStage[_currentStage];
         } else {
             uint256 currentStageAmount = limitPerStage[_currentStage] - _totalTokensSold;
             uint256 nextStageAmount = _amount - currentStageAmount;
-            cost = currentStageAmount * pricePerStage[_currentStage]
-            + _calculatePriceInUSDTForConditions(nextStageAmount, _currentStage + 1, limitPerStage[_currentStage]);
+            cost =
+                currentStageAmount *
+                pricePerStage[_currentStage] +
+                _calculatePriceInUSDTForConditions(nextStageAmount, _currentStage + 1, limitPerStage[_currentStage]);
         }
 
         return cost;
@@ -309,8 +286,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function _getStageByTotalSoldAmount() internal view returns (uint8) {
         uint8 stageIndex = MAX_STAGE_INDEX;
         while (stageIndex > 0) {
-            if (limitPerStage[stageIndex - 1] <= totalTokensSold)
-                break;
+            if (limitPerStage[stageIndex - 1] <= totalTokensSold) break;
             stageIndex -= 1;
         }
         return stageIndex;
