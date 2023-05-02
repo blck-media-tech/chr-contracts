@@ -2,17 +2,9 @@
 pragma solidity ^0.8.18;
 
 interface IPresale {
-    event SaleTimeUpdated(
-        uint256 saleStartTime,
-        uint256 saleEndTime,
-        uint256 timestamp
-    );
+    event SaleTimeUpdated(uint256 saleStartTime, uint256 saleEndTime, uint256 timestamp);
 
-    event TokensClaimed(
-        address indexed user,
-        uint256 amount,
-        uint256 timestamp
-    );
+    event TokensClaimed(address indexed user, uint256 amount, uint256 timestamp);
 
     event TokensBought(
         address indexed user,
@@ -55,6 +47,4 @@ interface IPresale {
 
     /// @notice No tokens were purchased by this user
     error NothingToClaim();
-
-
 }

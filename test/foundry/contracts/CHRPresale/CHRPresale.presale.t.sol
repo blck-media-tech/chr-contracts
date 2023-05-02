@@ -80,7 +80,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
     /// @custom:function buyWithETH
     /// @notice Expected result:
     ///         - amount of purchased buy user tokens was increased
-    ///         - TokensBought event emitted with empty referal id
+    ///         - TokensBought event emitted with 0 referal id
     ///         - sent ETH were transferred to presale contract owner
     function testFuzz_BuyWithEth(uint256 _amount, address _user, address _owner) public {
         vm.assume(address(_owner) != address(0));
@@ -177,7 +177,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
     /// @custom:function buyWithUSDT
     /// @notice Expected result:
     ///         - amount of purchased buy user tokens was increased
-    ///         - TokensBought event emitted with empty id
+    ///         - TokensBought event emitted with 0 referal id
     ///         - sent ETH were transferred to presale contract owner
     function testFuzz_BuyWithUSDT(address _user, uint256 _amount) public {
         vm.assume(_user != address(0));

@@ -10,18 +10,12 @@ contract ChainLinkAggregatorMock is IChainlinkPriceFeed {
     function latestRoundData()
         external
         view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         roundId = 1;
-        answer = price * 10**6;
+        answer = price * 10 ** 6;
         startedAt = 2;
-        updatedAt = 3;
+        updatedAt = block.timestamp;
         answeredInRound = 4;
     }
 }

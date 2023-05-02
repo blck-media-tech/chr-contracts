@@ -287,9 +287,8 @@ contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
         uint256 sum = 0;
 
         for (uint256 i = 0; i < currentStage; i += 1) {
-            sum += pricePerStage[i] * (limitPerStage[i] - (i == 0 ? 0 : limitPerStage[i - 1]));
+            sum += uint256(pricePerStage[i]) * (limitPerStage[i] - (i == 0 ? 0 : limitPerStage[i - 1]));
         }
-
         sum +=
             pricePerStage[currentStage] *
             (_totalTokensSold - (currentStage == 0 ? 0 : limitPerStage[currentStage - 1]));

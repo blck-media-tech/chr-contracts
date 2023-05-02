@@ -12,7 +12,7 @@ contract CHRPresaleDeployScript is Script {
     uint256 saleStartTime = 1680739200;
     uint256 saleEndTime = 1688162400;
 
-    uint256[12] limitPerStage = [
+    uint32[12] limitPerStage = [
         100_000_000,
         190_909_091, // +  90_909_091
         274_242_424, // +  83_333_333
@@ -26,7 +26,7 @@ contract CHRPresaleDeployScript is Script {
         818_771_403, // + 100_000_000
         961_628_546 // + 142_857_143
     ];
-    uint256[12] pricePerStage = [
+    uint16[12] pricePerStage = [
         10_000,
         11_000,
         12_000,

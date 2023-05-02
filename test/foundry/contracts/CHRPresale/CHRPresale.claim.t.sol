@@ -7,7 +7,6 @@ import "./CHRPresale.timeIndependent.t.sol";
 
 /// @title Test for Chancer presale in case current timestamp is after presale end and claim was started
 contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
-    
     /// @notice Expected state - contract deployed, preasle ended, claim started
     function setUp() public virtual override {
         uint256 saleStartTime = block.timestamp + timeDelay;
@@ -28,7 +27,7 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
         vm.warp(claimStartTime);
     }
 
-    /// @notice Ensure that test initial state was set up correctly 
+    /// @notice Ensure that test initial state was set up correctly
     function test_SetUpState() public override {
         assertEq(address(presaleContract.saleToken()), address(tokenContract));
         assertEq(address(presaleContract.oracle()), address(mockAggregator));

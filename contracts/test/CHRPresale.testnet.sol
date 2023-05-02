@@ -13,8 +13,8 @@ contract CHRPresaleTestnet is CHRPresale {
         address _usdt,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
-        uint256[12] memory _limitPerStage,
-        uint256[12] memory _pricePerStage
+        uint32[12] memory _limitPerStage,
+        uint16[12] memory _pricePerStage
     ) CHRPresale(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     function t_resetUser(address _user) public {

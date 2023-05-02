@@ -86,8 +86,8 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         address _usdt,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
-        uint256[12] memory _limitPerStage,
-        uint256[12] memory _pricePerStage
+        uint32[12] memory _limitPerStage,
+        uint16[12] memory _pricePerStage
     ) {
         if (_oracle == address(0)) revert ZeroAddress("Aggregator");
         if (_usdt == address(0)) revert ZeroAddress("USDT");
@@ -191,7 +191,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function buyWithUSDTAsReferral(
         uint256 _amount,
         string memory _referrerId
-    ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
+    ) public notBlacklisted verifyPurchase(_amount) whenNotPaused {
         (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
         uint256 allowance = usdtToken.allowance(_msgSender(), address(this));
         if (priceInUSDT > allowance) revert NotEnoughAllowance(allowance, priceInUSDT);
@@ -243,8 +243,9 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
             revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
         priceInUSDT = _calculatePriceInUSDTForConditions(_amount, currentStage, totalTokensSold);
 
-        (uint80 roundID, int256 price, , , uint80 answeredInRound) = oracle.latestRoundData();
+        (uint80 roundID, int256 price, , uint256 updatedAt, uint80 answeredInRound) = oracle.latestRoundData();
         require(answeredInRound >= roundID, "Stale price");
+        require(updatedAt >= block.timestamp - 3 hours, "Stale price");
         require(price > 0, "Invalid price");
         priceInETH = (priceInUSDT * 1e20) / uint256(price);
         //We need 1e20 to get resulting value in wei(1e18)
@@ -285,8 +286,9 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Calculate current stage index from total tokens sold amount
     function _getStageByTotalSoldAmount() internal view returns (uint8) {
         uint8 stageIndex = MAX_STAGE_INDEX;
+        uint256 totalTokensSold_ = totalTokensSold;
         while (stageIndex > 0) {
-            if (limitPerStage[stageIndex - 1] <= totalTokensSold) break;
+            if (limitPerStage[stageIndex - 1] <= totalTokensSold_) break;
             stageIndex -= 1;
         }
         return stageIndex;

@@ -6,7 +6,6 @@ import "contracts/test/ChainLinkAggregator.mock.sol";
 import "contracts/test/CHRPresale.testnet.sol";
 import "../../contracts/CHRPresale/CHRPresale.helper.t.sol";
 
-
 contract CHRPresaleTestnetHarness is CHRPresaleTestnet {
     constructor(
         address _saleToken,
@@ -14,15 +13,19 @@ contract CHRPresaleTestnetHarness is CHRPresaleTestnet {
         address _usdt,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
-        uint256[12] memory _limitPerStage,
-        uint256[12] memory _pricePerStage
+        uint32[12] memory _limitPerStage,
+        uint16[12] memory _pricePerStage
     ) CHRPresaleTestnet(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     function exposed_sendValue(address payable _recipient, uint256 _ethAmount) public {
         _sendValue(_recipient, _ethAmount);
     }
 
-    function exposed_calculatePriceInUSDTForConditions(uint256 _amount, uint256 _currentStage, uint256 _totalTokensSold) public view returns (uint256 cost) {
+    function exposed_calculatePriceInUSDTForConditions(
+        uint256 _amount,
+        uint256 _currentStage,
+        uint256 _totalTokensSold
+    ) public view returns (uint256 cost) {
         cost = _calculatePriceInUSDTForConditions(_amount, _currentStage, _totalTokensSold);
     }
 
