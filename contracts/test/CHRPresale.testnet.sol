@@ -13,9 +13,9 @@ contract CHRPresaleTestnet is CHRPresale {
         address _usdt,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
-        uint256[4] memory _limitPerStage,
-        uint256[4] memory _pricePerStage
-    ) CHRPresale(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage){}
+        uint256[12] memory _limitPerStage,
+        uint256[12] memory _pricePerStage
+    ) CHRPresale(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     function t_resetUser(address _user) public {
         hasClaimed[_user] = false;
@@ -23,10 +23,10 @@ contract CHRPresaleTestnet is CHRPresale {
     }
 
     function t_claimAndReset() external whenNotPaused {
-        if(block.timestamp < claimStartTime || claimStartTime == 0) revert InvalidTimeframe();
-        if(hasClaimed[_msgSender()]) revert AlreadyClaimed();
+        if (block.timestamp < claimStartTime || claimStartTime == 0) revert InvalidTimeframe();
+        if (hasClaimed[_msgSender()]) revert AlreadyClaimed();
         uint256 amount = purchasedTokens[_msgSender()];
-        if(amount == 0) revert NothingToClaim();
+        if (amount == 0) revert NothingToClaim();
         hasClaimed[_msgSender()] = true;
         IERC20(saleToken).safeTransfer(_msgSender(), amount);
         emit TokensClaimed(_msgSender(), amount, block.timestamp);

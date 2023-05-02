@@ -18,7 +18,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     address public immutable saleToken;
 
     /// @notice Last stage index
-    uint8 public constant MAX_STAGE_INDEX = 3;
+    uint8 public constant MAX_STAGE_INDEX = 11;
 
     /// @notice Total amount of purchased tokens
     uint256 public totalTokensSold;
@@ -33,10 +33,10 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     uint256 public saleEndTime;
 
     /// @notice Amount of totalTokensSold limits for each stage
-    uint256[4] public limitPerStage;
+    uint256[12] public limitPerStage;
 
     /// @notice Sale prices for each stage
-    uint256[4] public pricePerStage;
+    uint256[12] public pricePerStage;
 
     /// @notice Index of current stage
     uint8 public currentStage;
@@ -86,8 +86,8 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         address _usdt,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
-        uint256[4] memory _limitPerStage,
-        uint256[4] memory _pricePerStage
+        uint256[12] memory _limitPerStage,
+        uint256[12] memory _pricePerStage
     ) {
         if (_oracle == address(0)) revert ZeroAddress("Aggregator");
         if (_usdt == address(0)) revert ZeroAddress("USDT");
