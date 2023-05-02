@@ -138,6 +138,35 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         presaleContract.buyWithEth(_amount);
     }
 
+    /// @custom:function buyWithETH
+    /// @notice Execution should be reverted if contract is paused
+    function testFuzz_BuyWithEth_RevertWhen_ContractPaused(address _user, uint256 _amount) public {
+        vm.assume(_amount > 0);
+        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+        presaleContract.pause();
+
+        vm.expectRevert("Pausable: paused");
+
+        vm.prank(_user);
+        presaleContract.buyWithEth(_amount);
+    }
+
+    /// @custom:function buyWithETH
+    /// @notice Execution should be reverted if user blacklisted
+    function testFuzz_BuyWithEth_RevertOn_BlacklistedUserCall(address _user, uint256 _amount) public {
+        vm.assume(_amount > 0);
+        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+
+        address[] memory addressesToBlacklist = new address[](1);
+        addressesToBlacklist[0] = _user;
+        presaleContract.addToBlacklist(addressesToBlacklist);
+
+        vm.expectRevert(abi.encodeWithSelector(YouAreInBlacklist.selector));
+
+        vm.prank(_user);
+        presaleContract.buyWithEth(_amount);
+    }
+
     /// @custom:function buyWithUSDTAsReferral
     /// @notice Expected result:
     ///         - amount of purchased buy user tokens was increased
@@ -246,6 +275,37 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
 
         vm.expectRevert(abi.encodeWithSelector(NotEnoughAllowance.selector, 0, priceInUSDT));
+
+        vm.prank(_user);
+        presaleContract.buyWithUSDT(_amount);
+    }
+
+    /// @custom:function buyWithUSDT
+    /// @notice Execution should be reverted if contract is paused
+    function testFuzz_BuyWithUSDT_RevertWhen_ContractPaused(address _user, uint256 _amount) public {
+        vm.assume(_amount > 0);
+        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+
+        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        presaleContract.pause();
+
+        vm.expectRevert("Pausable: paused");
+
+        vm.prank(_user);
+        presaleContract.buyWithUSDT(_amount);
+    }
+
+    /// @custom:function buyWithUSDT
+    /// @notice Execution should be reverted if user blacklisted
+    function testFuzz_BuyWithUSDT_RevertOn_BlacklistedUserCall(address _user, uint256 _amount) public {
+        vm.assume(_amount > 0);
+        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+
+        address[] memory addressesToBlacklist = new address[](1);
+        addressesToBlacklist[0] = _user;
+        presaleContract.addToBlacklist(addressesToBlacklist);
+
+        vm.expectRevert(abi.encodeWithSelector(YouAreInBlacklist.selector));
 
         vm.prank(_user);
         presaleContract.buyWithUSDT(_amount);
