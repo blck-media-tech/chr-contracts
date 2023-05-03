@@ -154,16 +154,10 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         claimStartTime = _claimStartTime;
     }
 
-    /// @notice To buy into a presale using ETH without referrer
-    /// @param _amount - Amount of tokens to buy
-    function buyWithEth(uint256 _amount) external payable {
-        buyWithEthAsReferral(_amount, 0);
-    }
-
     /// @notice To buy into a presale using ETH with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithEthAsReferral(
+    function buyWithEth(
         uint256 _amount,
         uint256 _referrerId
     ) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
@@ -179,16 +173,10 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         emit TokensBought(_msgSender(), _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
     }
 
-    /// @notice To buy into a presale using USDT without referrer
-    /// @param _amount - Amount of tokens to buy
-    function buyWithUSDT(uint256 _amount) external {
-        buyWithUSDTAsReferral(_amount, 0);
-    }
-
     /// @notice To buy into a presale using USDT with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithUSDTAsReferral(
+    function buyWithUSDT(
         uint256 _amount,
         uint256 _referrerId
     ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {

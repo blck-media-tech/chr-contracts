@@ -36,12 +36,12 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         assertEq(presaleContract.currentStage(), 0);
     }
 
-    /// @custom:function buyWithETHAsReferral
+    /// @custom:function buyWithETH
     /// @notice Expected result:
     ///         - amount of purchased buy user tokens was increased
-    ///         - TokensBought event emitted with passed referal id
+    ///         - TokensBought event emitted with 0 referal id
     ///         - sent ETH were transferred to presale contract owner
-    function testFuzz_BuyWithEthAsReferral(uint256 _amount, address _user, address _owner, uint256 _referrerId) public {
+    function testFuzz_BuyWithEth(uint256 _amount, address _user, address _owner, uint256 _referrerId) public {
         vm.assume(address(_owner) != address(0));
         vm.assume(_owner != _user);
         vm.assume(_owner >= address(10));
@@ -64,43 +64,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         emit TokensBought(_user, _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
 
         vm.prank(_user);
-        presaleContract.buyWithEthAsReferral{ value: priceInETH }(_amount, _referrerId);
-
-        assertEq(address(_user).balance, balanceUserBefore - priceInETH);
-        assertEq(address(_owner).balance, balanceOwnerBefore + priceInETH);
-        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount);
-        assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
-    }
-
-    /// @custom:function buyWithETH
-    /// @notice Expected result:
-    ///         - amount of purchased buy user tokens was increased
-    ///         - TokensBought event emitted with 0 referal id
-    ///         - sent ETH were transferred to presale contract owner
-    function testFuzz_BuyWithEth(uint256 _amount, address _user, address _owner) public {
-        vm.assume(address(_owner) != address(0));
-        vm.assume(_owner != _user);
-        vm.assume(_owner >= address(10));
-        vm.assume(_owner.code.length == 0);
-        vm.assume(_amount > 0);
-        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
-
-        vm.prank(presaleContract.owner());
-        presaleContract.transferOwnership(_owner);
-
-        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
-        deal(_user, priceInETH);
-
-        uint256 balanceUserBefore = address(_user).balance;
-        uint256 balanceOwnerBefore = address(_owner).balance;
-        uint256 tokensPurchasedBefore = presaleContract.purchasedTokens(_user);
-        uint256 totalTokensSoldBefore = presaleContract.totalTokensSold();
-
-        vm.expectEmit(true, true, true, true);
-        emit TokensBought(_user, _amount, priceInUSDT, priceInETH, 0, block.timestamp);
-
-        vm.prank(_user);
-        presaleContract.buyWithEth{ value: priceInETH }(_amount);
+        presaleContract.buyWithEth{ value: priceInETH }(_amount, _referrerId);
 
         assertEq(address(_user).balance, balanceUserBefore - priceInETH);
         assertEq(address(_owner).balance, balanceOwnerBefore + priceInETH);
@@ -110,16 +74,20 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
 
     /// @custom:function buyWithETH
     /// @notice Execution should be reverted if trying to purchase 0 tokens
-    function testFuzz_BuyWithEth_RevertOn_PurchasingZeroTokens(address _user) public {
+    function testFuzz_BuyWithEth_RevertOn_PurchasingZeroTokens(address _user, uint256 _referrerId) public {
         vm.expectRevert(abi.encodeWithSelector(BuyAtLeastOneToken.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(0);
+        presaleContract.buyWithEth(0, _referrerId);
     }
 
     /// @custom:function buyWithETH
     /// @notice Execution should be reverted if trying to purchase amount of tokens that overflows presale limit
-    function testFuzz_BuyWithEth_RevertOn_PurchasingMoreTokensThanPresaleLimit(address _user, uint256 _amount) public {
+    function testFuzz_BuyWithEth_RevertOn_PurchasingMoreTokensThanPresaleLimit(
+        address _user,
+        uint256 _amount,
+        uint256 _referrerId
+    ) public {
         vm.assume(_amount > limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
         vm.expectRevert(
@@ -130,12 +98,12 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         );
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount);
+        presaleContract.buyWithEth(_amount, _referrerId);
     }
 
     /// @custom:function buyWithETH
     /// @notice Execution should be reverted if contract is paused
-    function testFuzz_BuyWithEth_RevertWhen_ContractPaused(address _user, uint256 _amount) public {
+    function testFuzz_BuyWithEth_RevertWhen_ContractPaused(address _user, uint256 _amount, uint256 _referrerId) public {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
         presaleContract.pause();
@@ -143,12 +111,16 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.expectRevert("Pausable: paused");
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount);
+        presaleContract.buyWithEth(_amount, _referrerId);
     }
 
     /// @custom:function buyWithETH
     /// @notice Execution should be reverted if user blacklisted
-    function testFuzz_BuyWithEth_RevertOn_BlacklistedUserCall(address _user, uint256 _amount) public {
+    function testFuzz_BuyWithEth_RevertOn_BlacklistedUserCall(
+        address _user,
+        uint256 _amount,
+        uint256 _referrerId
+    ) public {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
@@ -159,15 +131,15 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount);
+        presaleContract.buyWithEth(_amount, _referrerId);
     }
 
-    /// @custom:function buyWithUSDTAsReferral
+    /// @custom:function buyWithUSDT
     /// @notice Expected result:
     ///         - amount of purchased buy user tokens was increased
     ///         - TokensBought event emitted with passed referal id
     ///         - sent ETH were transferred to presale contract owner
-    function testFuzz_BuyWithUSDTAsReferral(address _user, uint256 _amount, uint256 _referrerId) public {
+    function testFuzz_BuyWithUSDT(address _user, uint256 _amount, uint256 _referrerId) public {
         vm.assume(_user != address(0));
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
@@ -190,43 +162,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         emit TokensBought(_user, _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
 
         vm.prank(_user);
-        presaleContract.buyWithUSDTAsReferral(_amount, _referrerId);
-
-        assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - priceInUSDT);
-        assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInUSDT);
-        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount);
-        assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
-    }
-
-    /// @custom:function buyWithUSDT
-    /// @notice Expected result:
-    ///         - amount of purchased buy user tokens was increased
-    ///         - TokensBought event emitted with 0 referal id
-    ///         - sent ETH were transferred to presale contract owner
-    function testFuzz_BuyWithUSDT(address _user, uint256 _amount) public {
-        vm.assume(_user != address(0));
-        vm.assume(_amount > 0);
-        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
-
-        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
-        deal(address(mockUSDT), _user, priceInUSDT, true);
-
-        uint256 balanceUserBefore = mockUSDTWrapped.balanceOf(_user);
-        uint256 balanceOwnerBefore = mockUSDTWrapped.balanceOf(presaleContract.owner());
-        uint256 tokensPurchasedBefore = presaleContract.purchasedTokens(_user);
-
-        uint256 totalTokensSoldBefore = presaleContract.totalTokensSold();
-
-        vm.prank(_user);
-        address(mockUSDT).call(
-            abi.encodeWithSignature("approve(address,uint256)", address(presaleContract), priceInUSDT)
-        );
-
-        vm.expectEmit(true, true, true, true);
-        emit TokensBought(_user, _amount, priceInUSDT, priceInETH, 0, block.timestamp);
-
-        vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount);
+        presaleContract.buyWithUSDT(_amount, _referrerId);
 
         assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - priceInUSDT);
         assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInUSDT);
@@ -236,18 +172,22 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
 
     /// @custom:function buyWithUSDT
     /// @notice Execution should be reverted if trying to purchase 0 tokens
-    function testFuzz_BuyWithUSDT_RevertOn_PurchasingZeroTokens(address _user) public {
+    function testFuzz_BuyWithUSDT_RevertOn_PurchasingZeroTokens(address _user, uint256 _referrerId) public {
         vm.assume(_user != address(0));
 
         vm.expectRevert(abi.encodeWithSelector(BuyAtLeastOneToken.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(0);
+        presaleContract.buyWithUSDT(0, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
     /// @notice Execution should be reverted if trying to purchase amount of tokens that overflows presale limit
-    function testFuzz_BuyWithUSDT_RevertOn_PurchasingMoreTokensThanPresaleLimit(address _user, uint256 _amount) public {
+    function testFuzz_BuyWithUSDT_RevertOn_PurchasingMoreTokensThanPresaleLimit(
+        address _user,
+        uint256 _amount,
+        uint256 _referrerId
+    ) public {
         vm.assume(_amount > limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
         vm.expectRevert(
@@ -258,12 +198,16 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         );
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount);
+        presaleContract.buyWithUSDT(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
     /// @notice Execution should be reverted if provided allowance is not enough
-    function testFuzz_BuyWithUSDT_RevertOn_NotEnoughAllowance(address _user, uint256 _amount) public {
+    function testFuzz_BuyWithUSDT_RevertOn_NotEnoughAllowance(
+        address _user,
+        uint256 _amount,
+        uint256 _referrerId
+    ) public {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
@@ -272,12 +216,16 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(NotEnoughAllowance.selector, 0, priceInUSDT));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount);
+        presaleContract.buyWithUSDT(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
     /// @notice Execution should be reverted if contract is paused
-    function testFuzz_BuyWithUSDT_RevertWhen_ContractPaused(address _user, uint256 _amount) public {
+    function testFuzz_BuyWithUSDT_RevertWhen_ContractPaused(
+        address _user,
+        uint256 _amount,
+        uint256 _referrerId
+    ) public {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
@@ -287,12 +235,16 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.expectRevert("Pausable: paused");
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount);
+        presaleContract.buyWithUSDT(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
     /// @notice Execution should be reverted if user blacklisted
-    function testFuzz_BuyWithUSDT_RevertOn_BlacklistedUserCall(address _user, uint256 _amount) public {
+    function testFuzz_BuyWithUSDT_RevertOn_BlacklistedUserCall(
+        address _user,
+        uint256 _amount,
+        uint256 _referrerId
+    ) public {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
@@ -303,7 +255,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount);
+        presaleContract.buyWithUSDT(_amount, _referrerId);
     }
 
     /// @custom:function claim

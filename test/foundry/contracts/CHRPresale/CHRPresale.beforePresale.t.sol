@@ -36,20 +36,20 @@ contract CHRPresaleTest_BeforePresale is CHRPresaleTest_TimeIndependent {
 
     /// @custom:function buyWithETH
     /// @notice User shouldn't be able to buy with ETH before presale started
-    function testFuzz_BuyWithEth_RevertWhen_PresaleNotStarted(uint256 _amount, address _user) public {
+    function testFuzz_BuyWithEth_RevertWhen_PresaleNotStarted(uint256 _amount, address _user, uint256 _referrerId) public {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount);
+        presaleContract.buyWithEth(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
     /// @notice User shouldn't be able to buy with USDT before presale started
-    function testFuzz_BuyWithUSDT_RevertWhen_PresaleNotStarted(uint256 _amount, address _user) public {
+    function testFuzz_BuyWithUSDT_RevertWhen_PresaleNotStarted(uint256 _amount, address _user, uint256 _referrerId) public {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount);
+        presaleContract.buyWithUSDT(_amount, _referrerId);
     }
 
     /// @custom:function claim

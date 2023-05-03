@@ -100,7 +100,7 @@ contract CHRPresaleHelper is Test {
 
     /// @notice Helper for purchasing tokens
     /// @dev should be used if test is not dependent on way of purchasing but on the fact it was and amount of purchased tokens
-    function helper_purchaseTokens(address _user, uint256 _amount, address _owner) public {
+    function helper_purchaseTokens(address _user, uint256 _amount, address _owner, uint256 _referrerId) public {
         uint256 startTime = block.timestamp;
         vm.warp(presaleContract.saleStartTime());
         (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
@@ -112,7 +112,7 @@ contract CHRPresaleHelper is Test {
         deal(address(tokenContract), address(presaleContract), _amount * 1e18, true);
 
         vm.prank(_user);
-        presaleContract.buyWithEth{ value: priceInETH }(_amount);
+        presaleContract.buyWithEth{ value: priceInETH }(_amount, _referrerId);
         vm.warp(startTime);
     }
 }

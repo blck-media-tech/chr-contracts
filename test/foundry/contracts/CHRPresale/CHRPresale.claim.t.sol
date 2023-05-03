@@ -41,20 +41,20 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
 
     /// @custom:function buyWithETH
     /// @notice User shouldn't be able to buy with ETH after presale ended
-    function testFuzz_BuyWithEth_RevertWhen_ClaimStarted(uint256 _amount, address _user) public {
+    function testFuzz_BuyWithEth_RevertWhen_ClaimStarted(uint256 _amount, address _user, uint256 _referrerId) public {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount);
+        presaleContract.buyWithEth(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
     /// @notice User shouldn't be able to buy with USDT after presale ended
-    function testFuzz_BuyWithUSDT_RevertWhen_ClaimStarted(uint256 _amount, address _user) public {
+    function testFuzz_BuyWithUSDT_RevertWhen_ClaimStarted(uint256 _amount, address _user, uint256 _referrerId) public {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount);
+        presaleContract.buyWithUSDT(_amount, _referrerId);
     }
 
     /// @custom:function claim
@@ -62,14 +62,14 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
     ///         - tokens transferred from presale contract to user
     ///         - TokensClaimed event emitted
     ///         - user marked as claimed
-    function testFuzz_Claim(address _user, uint256 _amount, address _owner) public {
+    function testFuzz_Claim(address _user, uint256 _amount, address _owner, uint256 _referrerId) public {
         vm.assume(_user != address(0));
         vm.assume(_owner >= address(10));
         vm.assume(_owner != _user);
         vm.assume(_owner.code.length == 0);
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
-        helper_purchaseTokens(_user, _amount, _owner);
+        helper_purchaseTokens(_user, _amount, _owner, _referrerId);
 
         uint256 userBalanceBefore = tokenContract.balanceOf(_user);
         uint256 contractBalanceBefore = tokenContract.balanceOf(address(presaleContract));
@@ -89,14 +89,19 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
 
     /// @custom:function claim
     /// @notice Execution should be reverted if user tries to claim second time
-    function testFuzz_Claim_RevertWhen_ClaimingSecondTime(address _user, uint256 _amount, address _owner) public {
+    function testFuzz_Claim_RevertWhen_ClaimingSecondTime(
+        address _user,
+        uint256 _amount,
+        address _owner,
+        uint256 _referrerId
+    ) public {
         vm.assume(_user != address(0));
         vm.assume(_owner >= address(10));
         vm.assume(_owner != _user);
         vm.assume(_owner.code.length == 0);
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
-        helper_purchaseTokens(_user, _amount, _owner);
+        helper_purchaseTokens(_user, _amount, _owner, _referrerId);
 
         uint256 userBalanceBefore = tokenContract.balanceOf(_user);
         uint256 contractBalanceBefore = tokenContract.balanceOf(address(presaleContract));
