@@ -17,6 +17,12 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Address of token contract
     address public immutable saleToken;
 
+    /// @notice Address of USDT token
+    IERC20 public immutable usdtToken;
+
+    /// @notice Address of chainlink ETH/USD price feed
+    IChainlinkPriceFeed public immutable oracle;
+
     /// @notice Last stage index
     uint8 public constant MAX_STAGE_INDEX = 11;
 
@@ -33,19 +39,13 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     uint256 public saleEndTime;
 
     /// @notice Amount of totalTokensSold limits for each stage
-    uint256[12] public limitPerStage;
+    uint32[12] public limitPerStage;
 
     /// @notice Sale prices for each stage
-    uint256[12] public pricePerStage;
+    uint16[12] public pricePerStage;
 
     /// @notice Index of current stage
     uint8 public currentStage;
-
-    /// @notice Address of USDT token
-    IERC20 public immutable usdtToken;
-
-    /// @notice Address of chainlink ETH/USD price feed
-    IChainlinkPriceFeed public immutable oracle;
 
     /// @notice Stores the number of tokens purchased by each user that have not yet been claimed
     mapping(address => uint256) public purchasedTokens;
@@ -68,7 +68,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
 
     /// @notice Verifies that the sender isn't blacklisted
     modifier notBlacklisted() {
-        if (blacklist[_msgSender()]) revert YouAreInBlacklist();
+        if (blacklist[_msgSender()]) revert AddressBlacklisted();
         _;
     }
 
@@ -150,14 +150,14 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _claimStartTime - claim start time
     /// @notice Function also makes sure that presale have enough sale token balance
     function configureClaim(uint256 _claimStartTime) external onlyOwner {
-        require(IERC20(saleToken).balanceOf(address(this)) >= totalTokensSold * 1e18, "Not enough balance");
+        require(IERC20(saleToken).balanceOf(address(this)) >= totalTokensSold * 1e18, "Not enough tokens on contract");
         claimStartTime = _claimStartTime;
     }
 
     /// @notice To buy into a presale using ETH without referrer
     /// @param _amount - Amount of tokens to buy
     function buyWithEth(uint256 _amount) external payable {
-        buyWithEthAsReferral(_amount, "");
+        buyWithEthAsReferral(_amount, 0);
     }
 
     /// @notice To buy into a presale using ETH with referrer
@@ -165,13 +165,13 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _referrerId - id of the referrer
     function buyWithEthAsReferral(
         uint256 _amount,
-        string memory _referrerId
+        uint256 _referrerId
     ) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
         (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
         if (msg.value < priceInETH) revert NotEnoughETH(msg.value, priceInETH);
         uint256 excess = msg.value - priceInETH;
         totalTokensSold += _amount;
-        purchasedTokens[_msgSender()] += _amount * 1e18;
+        purchasedTokens[_msgSender()] += _amount;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         _sendValue(payable(owner()), priceInETH);
@@ -182,7 +182,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using USDT without referrer
     /// @param _amount - Amount of tokens to buy
     function buyWithUSDT(uint256 _amount) external {
-        buyWithUSDTAsReferral(_amount, "");
+        buyWithUSDTAsReferral(_amount, 0);
     }
 
     /// @notice To buy into a presale using USDT with referrer
@@ -190,13 +190,13 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _referrerId - id of the referrer
     function buyWithUSDTAsReferral(
         uint256 _amount,
-        string memory _referrerId
-    ) public notBlacklisted verifyPurchase(_amount) whenNotPaused {
+        uint256 _referrerId
+    ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
         (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
         uint256 allowance = usdtToken.allowance(_msgSender(), address(this));
         if (priceInUSDT > allowance) revert NotEnoughAllowance(allowance, priceInUSDT);
         totalTokensSold += _amount;
-        purchasedTokens[_msgSender()] += _amount * 1e18;
+        purchasedTokens[_msgSender()] += _amount;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         usdtToken.safeTransferFrom(_msgSender(), owner(), priceInUSDT);
@@ -207,7 +207,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function claim() external whenNotPaused {
         if (block.timestamp < claimStartTime || claimStartTime == 0) revert InvalidTimeframe();
         if (hasClaimed[_msgSender()]) revert AlreadyClaimed();
-        uint256 amount = purchasedTokens[_msgSender()];
+        uint256 amount = purchasedTokens[_msgSender()] * 1e18;
         if (amount == 0) revert NothingToClaim();
         hasClaimed[_msgSender()] = true;
         IERC20(saleToken).safeTransfer(_msgSender(), amount);
@@ -220,8 +220,8 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     }
 
     /// @notice Returns amount of tokens sold on current stage
-    function getSoldOnCurrentStage() external view returns (uint256 soldOnCurrentStage) {
-        soldOnCurrentStage = totalTokensSold - ((currentStage == 0) ? 0 : limitPerStage[currentStage - 1]);
+    function getSoldOnCurrentStage() external view returns (uint256) {
+        return totalTokensSold - ((currentStage == 0) ? 0 : limitPerStage[currentStage - 1]);
     }
 
     /// @notice Returns presale last stage token amount limit

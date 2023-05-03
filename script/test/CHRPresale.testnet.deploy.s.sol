@@ -7,7 +7,7 @@ import "contracts/test/CHRPresale.testnet.sol";
 contract CHRPresaleTestnetDeployScript is Script {
     address tokenContract = 0xe94aEBBf933EC1E50Fa6efc5DcC30A3A52614a4C;
     address mockUSDT = 0x6b423B7Dd9c36AeDcF16525e6Eb827c7a3a4FA11;
-    address mockAggregator = 0x1E5CAdBDA5494C8cf1f348e0A64AEb8A66604813;
+    address mockAggregator = 0x6815E42D850ff28DFB29e92320BcF2c6DfADCb0b;
 
     uint32 saleStartTime = 1680739200;
     uint32 saleEndTime = 1688162400;

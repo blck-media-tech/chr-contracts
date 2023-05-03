@@ -47,9 +47,7 @@ contract CHRPresaleTestnetTest_TimeIndependent is CHRPresaleTestnetHelper, CHRPr
 
         helper_prepareToClaim(_user, _amount);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(InvalidTimeframe.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
         presaleContract.claim();

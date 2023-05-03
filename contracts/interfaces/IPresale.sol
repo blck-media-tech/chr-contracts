@@ -11,7 +11,7 @@ interface IPresale {
         uint256 amount,
         uint256 totalCostInUsd,
         uint256 totalCostInETH,
-        string indexed referrerId,
+        uint256 indexed referrerId,
         uint256 timestamp
     );
 
@@ -26,7 +26,7 @@ interface IPresale {
     error PresaleLimitExceeded(uint256 tokensRemains);
 
     /// @notice User is in blacklist
-    error YouAreInBlacklist();
+    error AddressBlacklisted();
 
     /// @notice If zero address was passed
     /// @param contractName - name indicator of the corresponding contract

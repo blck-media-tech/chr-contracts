@@ -49,9 +49,7 @@ contract CHRPresaleTestnetTest_Presale is CHRPresaleTestnetHelper, CHRPresaleTes
 
         helper_prepareToClaim(_user, _amount);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(InvalidTimeframe.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
         presaleContract.claim();

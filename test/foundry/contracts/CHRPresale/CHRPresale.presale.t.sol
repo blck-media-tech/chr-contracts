@@ -41,12 +41,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
     ///         - amount of purchased buy user tokens was increased
     ///         - TokensBought event emitted with passed referal id
     ///         - sent ETH were transferred to presale contract owner
-    function testFuzz_BuyWithEthAsReferral(
-        uint256 _amount,
-        address _user,
-        address _owner,
-        string memory _referrerId
-    ) public {
+    function testFuzz_BuyWithEthAsReferral(uint256 _amount, address _user, address _owner, uint256 _referrerId) public {
         vm.assume(address(_owner) != address(0));
         vm.assume(_owner != _user);
         vm.assume(_owner >= address(10));
@@ -73,7 +68,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
 
         assertEq(address(_user).balance, balanceUserBefore - priceInETH);
         assertEq(address(_owner).balance, balanceOwnerBefore + priceInETH);
-        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount * 1e18);
+        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount);
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
@@ -102,14 +97,14 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         uint256 totalTokensSoldBefore = presaleContract.totalTokensSold();
 
         vm.expectEmit(true, true, true, true);
-        emit TokensBought(_user, _amount, priceInUSDT, priceInETH, "", block.timestamp);
+        emit TokensBought(_user, _amount, priceInUSDT, priceInETH, 0, block.timestamp);
 
         vm.prank(_user);
         presaleContract.buyWithEth{ value: priceInETH }(_amount);
 
         assertEq(address(_user).balance, balanceUserBefore - priceInETH);
         assertEq(address(_owner).balance, balanceOwnerBefore + priceInETH);
-        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount * 1e18);
+        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount);
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
@@ -161,7 +156,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         addressesToBlacklist[0] = _user;
         presaleContract.addToBlacklist(addressesToBlacklist);
 
-        vm.expectRevert(abi.encodeWithSelector(YouAreInBlacklist.selector));
+        vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
         presaleContract.buyWithEth(_amount);
@@ -172,7 +167,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
     ///         - amount of purchased buy user tokens was increased
     ///         - TokensBought event emitted with passed referal id
     ///         - sent ETH were transferred to presale contract owner
-    function testFuzz_BuyWithUSDTAsReferral(address _user, uint256 _amount, string memory _referrerId) public {
+    function testFuzz_BuyWithUSDTAsReferral(address _user, uint256 _amount, uint256 _referrerId) public {
         vm.assume(_user != address(0));
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
@@ -199,7 +194,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
 
         assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - priceInUSDT);
         assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInUSDT);
-        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount * 1e18);
+        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount);
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
@@ -228,14 +223,14 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         );
 
         vm.expectEmit(true, true, true, true);
-        emit TokensBought(_user, _amount, priceInUSDT, priceInETH, "", block.timestamp);
+        emit TokensBought(_user, _amount, priceInUSDT, priceInETH, 0, block.timestamp);
 
         vm.prank(_user);
         presaleContract.buyWithUSDT(_amount);
 
         assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - priceInUSDT);
         assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInUSDT);
-        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount * 1e18);
+        assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount);
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
@@ -305,7 +300,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         addressesToBlacklist[0] = _user;
         presaleContract.addToBlacklist(addressesToBlacklist);
 
-        vm.expectRevert(abi.encodeWithSelector(YouAreInBlacklist.selector));
+        vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
         presaleContract.buyWithUSDT(_amount);
