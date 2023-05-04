@@ -22,11 +22,10 @@ You can use either foundry or hardhat to compile contracts:
 - `npx hardhat compile` for compiling with hardhat. Artifacts will be placed in `/artifacts` directory
 
 ## Running tests
-Contracts were covered with tests by both hardhat and foundry.
+Contracts were covered with tests by foundry.
 To run foundry test you should use `forge test` command. It can be augmented with additional params:
 - gas-report - add `--gas-report` to print report with info about used gas
 - verbosity - you can indicate verbosity level using `-v` flag. There are 4 [verbosity levels](https://book.getfoundry.sh/forge/tests#logs-and-traces) from 2(`-vv`) to 5(`-vvvvv`)
-To run hardhat test you should use `npx hardhat test` command.
 
 ## Deploying contracts
 Before deploying contracts you should specify several values in `.env` file:
