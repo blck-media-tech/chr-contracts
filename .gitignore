@@ -12,3 +12,15 @@ artifacts
 # IDE
 .vscode
 .idea
+
+#Foundry files
+
+# Compiler files
+forge-cache/
+out/
+
+# Ignores development broadcast logs
+broadcast/
+
+# Docs
+docs/
