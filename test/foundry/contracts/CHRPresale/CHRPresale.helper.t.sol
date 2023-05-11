@@ -15,7 +15,7 @@ contract CHRPresaleHarness is CHRPresale {
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
-        uint16[12] memory _pricePerStage
+        uint64[12] memory _pricePerStage
     ) CHRPresale(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     /// @notice exposing internal function for testing
@@ -75,26 +75,26 @@ contract CHRPresaleHelper is Test {
         818_771_403, // + 100_000_000
         961_628_546 // + 142_857_143
     ];
-    uint16[12] pricePerStage = [
-        10_000,
-        11_000,
-        12_000,
-        13_000,
-        14_000,
-        15_000,
-        16_000,
-        17_000,
-        18_000,
-        19_000,
-        20_000,
-        21_000
+    uint64[12] pricePerStage = [
+        10_000_000_000_000_000,
+        11_000_000_000_000_000,
+        12_000_000_000_000_000,
+        13_000_000_000_000_000,
+        14_000_000_000_000_000,
+        15_000_000_000_000_000,
+        16_000_000_000_000_000,
+        17_000_000_000_000_000,
+        18_000_000_000_000_000,
+        19_000_000_000_000_000,
+        20_000_000_000_000_000,
+        21_000_000_000_000_000
     ];
     uint256 timeDelay = 1 days;
 
     constructor() {
         tokenContract = new CHRToken(totalSupply);
         mockAggregator = new ChainLinkAggregatorMock();
-        mockUSDT = deployCode("USDT.mock.sol:USDTMock", abi.encode(0, "USDT mock", "USDT", 6));
+        mockUSDT = deployCode("BUSD.mock.sol:BUSDMock", abi.encode());
         mockUSDTWrapped = IERC20(mockUSDT);
     }
 

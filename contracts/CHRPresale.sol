@@ -42,7 +42,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     uint32[12] public limitPerStage;
 
     /// @notice Sale prices for each stage
-    uint16[12] public pricePerStage;
+    uint64[12] public pricePerStage;
 
     /// @notice Index of current stage
     uint8 public currentStage;
@@ -87,7 +87,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
-        uint16[12] memory _pricePerStage
+        uint64[12] memory _pricePerStage
     ) {
         if (_oracle == address(0)) revert ZeroAddress("Aggregator");
         if (_usdt == address(0)) revert ZeroAddress("USDT");

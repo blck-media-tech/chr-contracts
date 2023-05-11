@@ -14,7 +14,7 @@ contract CHRPresaleTestnetHarness is CHRPresaleTestnet {
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
-        uint16[12] memory _pricePerStage
+        uint64[12] memory _pricePerStage
     ) CHRPresaleTestnet(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     function exposed_sendValue(address payable _recipient, uint256 _ethAmount) public {
