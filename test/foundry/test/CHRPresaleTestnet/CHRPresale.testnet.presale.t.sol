@@ -13,7 +13,7 @@ contract CHRPresaleTestnetTest_Presale is CHRPresaleTestnetHelper, CHRPresaleTes
         presaleContractTestnet = new CHRPresaleTestnetHarness(
             address(tokenContract),
             address(mockAggregator),
-            address(mockUSDT),
+            address(mockBUSD),
             saleStartTime,
             saleEndTime,
             limitPerStage,

@@ -11,12 +11,12 @@ contract CHRPresaleHarness is CHRPresale {
     constructor(
         address _saleToken,
         address _oracle,
-        address _usdt,
+        address _busd,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
-        uint16[12] memory _pricePerStage
-    ) CHRPresale(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
+        uint64[12] memory _pricePerStage
+    ) CHRPresale(_saleToken, _oracle, _busd, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     /// @notice exposing internal function for testing
     function exposed_sendValue(address payable _recipient, uint256 _ethAmount) public {
@@ -24,12 +24,12 @@ contract CHRPresaleHarness is CHRPresale {
     }
 
     /// @notice exposing internal function for testing
-    function exposed_calculatePriceInUSDTForConditions(
+    function exposed_calculatePriceInBUSDForConditions(
         uint256 _amount,
         uint256 _currentStage,
         uint256 _totalTokensSold
     ) public view returns (uint256) {
-        return _calculatePriceInUSDTForConditions(_amount, _currentStage, _totalTokensSold);
+        return _calculatePriceInBUSDForConditions(_amount, _currentStage, _totalTokensSold);
     }
 
     /// @notice exposing internal function for testing
@@ -56,8 +56,8 @@ contract CHRPresaleHelper is Test {
     CHRPresaleHarness presaleContract;
     CHRToken tokenContract;
     ChainLinkAggregatorMock mockAggregator;
-    address mockUSDT;
-    IERC20 mockUSDTWrapped;
+    address mockBUSD;
+    IERC20 mockBUSDWrapped;
 
     uint256 totalSupply = 1_000_000_000;
 
@@ -75,27 +75,27 @@ contract CHRPresaleHelper is Test {
         818_771_403, // + 100_000_000
         961_628_546 // + 142_857_143
     ];
-    uint16[12] pricePerStage = [
-        10_000,
-        11_000,
-        12_000,
-        13_000,
-        14_000,
-        15_000,
-        16_000,
-        17_000,
-        18_000,
-        19_000,
-        20_000,
-        21_000
+    uint64[12] pricePerStage = [
+        10_000_000_000_000_000,
+        11_000_000_000_000_000,
+        12_000_000_000_000_000,
+        13_000_000_000_000_000,
+        14_000_000_000_000_000,
+        15_000_000_000_000_000,
+        16_000_000_000_000_000,
+        17_000_000_000_000_000,
+        18_000_000_000_000_000,
+        19_000_000_000_000_000,
+        20_000_000_000_000_000,
+        21_000_000_000_000_000
     ];
     uint256 timeDelay = 1 days;
 
     constructor() {
         tokenContract = new CHRToken(totalSupply);
         mockAggregator = new ChainLinkAggregatorMock();
-        mockUSDT = deployCode("USDT.mock.sol:USDTMock", abi.encode(0, "USDT mock", "USDT", 6));
-        mockUSDTWrapped = IERC20(mockUSDT);
+        mockBUSD = deployCode("BUSD.mock.sol:BUSDMock", abi.encode());
+        mockBUSDWrapped = IERC20(mockBUSD);
     }
 
     /// @notice Helper for purchasing tokens
@@ -103,16 +103,16 @@ contract CHRPresaleHelper is Test {
     function helper_purchaseTokens(address _user, uint256 _amount, address _owner, uint256 _referrerId) public {
         uint256 startTime = block.timestamp;
         vm.warp(presaleContract.saleStartTime());
-        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        (uint256 priceInBNB, uint256 priceInBUSD) = presaleContract.getPrice(_amount);
 
         vm.prank(presaleContract.owner());
         presaleContract.transferOwnership(_owner);
 
-        vm.deal(_user, priceInETH);
+        vm.deal(_user, priceInBNB);
         deal(address(tokenContract), address(presaleContract), _amount * 1e18, true);
 
         vm.prank(_user);
-        presaleContract.buyWithEth{ value: priceInETH }(_amount, _referrerId);
+        presaleContract.buyWithBnb{ value: priceInBNB }(_amount, _referrerId);
         vm.warp(startTime);
     }
 }

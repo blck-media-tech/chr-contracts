@@ -14,7 +14,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         presaleContract = new CHRPresaleHarness(
             address(tokenContract),
             address(mockAggregator),
-            address(mockUSDT),
+            address(mockBUSD),
             saleStartTime,
             saleEndTime,
             limitPerStage,
@@ -28,7 +28,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
     function test_SetUpState() public override {
         assertEq(address(presaleContract.saleToken()), address(tokenContract));
         assertEq(address(presaleContract.oracle()), address(mockAggregator));
-        assertEq(address(presaleContract.usdtToken()), address(mockUSDT));
+        assertEq(address(presaleContract.busdToken()), address(mockBUSD));
         assertEq(presaleContract.totalTokensSold(), 0);
         assertEq(presaleContract.saleStartTime(), block.timestamp);
         assertEq(presaleContract.saleEndTime(), block.timestamp + timeDelay);
@@ -36,12 +36,12 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         assertEq(presaleContract.currentStage(), 0);
     }
 
-    /// @custom:function buyWithETH
+    /// @custom:function buyWithBNB
     /// @notice Expected result:
     ///         - amount of purchased buy user tokens was increased
     ///         - TokensBought event emitted with 0 referal id
-    ///         - sent ETH were transferred to presale contract owner
-    function testFuzz_BuyWithEth(uint256 _amount, address _user, address _owner, uint256 _referrerId) public {
+    ///         - sent BNB were transferred to presale contract owner
+    function testFuzz_BuyWithBnb(uint256 _amount, address _user, address _owner, uint256 _referrerId) public {
         vm.assume(address(_owner) != address(0));
         vm.assume(_owner != _user);
         vm.assume(_owner >= address(10));
@@ -52,8 +52,8 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.prank(presaleContract.owner());
         presaleContract.transferOwnership(_owner);
 
-        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
-        deal(_user, priceInETH);
+        (uint256 priceInBNB, uint256 priceInBUSD) = presaleContract.getPrice(_amount);
+        deal(_user, priceInBNB);
 
         uint256 balanceUserBefore = address(_user).balance;
         uint256 balanceOwnerBefore = address(_owner).balance;
@@ -61,29 +61,29 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         uint256 totalTokensSoldBefore = presaleContract.totalTokensSold();
 
         vm.expectEmit(true, true, true, true);
-        emit TokensBought(_user, _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
+        emit TokensBought(_user, _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
 
         vm.prank(_user);
-        presaleContract.buyWithEth{ value: priceInETH }(_amount, _referrerId);
+        presaleContract.buyWithBnb{ value: priceInBNB }(_amount, _referrerId);
 
-        assertEq(address(_user).balance, balanceUserBefore - priceInETH);
-        assertEq(address(_owner).balance, balanceOwnerBefore + priceInETH);
+        assertEq(address(_user).balance, balanceUserBefore - priceInBNB);
+        assertEq(address(_owner).balance, balanceOwnerBefore + priceInBNB);
         assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount);
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
-    /// @custom:function buyWithETH
+    /// @custom:function buyWithBNB
     /// @notice Execution should be reverted if trying to purchase 0 tokens
-    function testFuzz_BuyWithEth_RevertOn_PurchasingZeroTokens(address _user, uint256 _referrerId) public {
+    function testFuzz_BuyWithBnb_RevertOn_PurchasingZeroTokens(address _user, uint256 _referrerId) public {
         vm.expectRevert(abi.encodeWithSelector(BuyAtLeastOneToken.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(0, _referrerId);
+        presaleContract.buyWithBnb(0, _referrerId);
     }
 
-    /// @custom:function buyWithETH
+    /// @custom:function buyWithBNB
     /// @notice Execution should be reverted if trying to purchase amount of tokens that overflows presale limit
-    function testFuzz_BuyWithEth_RevertOn_PurchasingMoreTokensThanPresaleLimit(
+    function testFuzz_BuyWithBnb_RevertOn_PurchasingMoreTokensThanPresaleLimit(
         address _user,
         uint256 _amount,
         uint256 _referrerId
@@ -98,12 +98,12 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         );
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount, _referrerId);
+        presaleContract.buyWithBnb(_amount, _referrerId);
     }
 
-    /// @custom:function buyWithETH
+    /// @custom:function buyWithBNB
     /// @notice Execution should be reverted if contract is paused
-    function testFuzz_BuyWithEth_RevertWhen_ContractPaused(address _user, uint256 _amount, uint256 _referrerId) public {
+    function testFuzz_BuyWithBnb_RevertWhen_ContractPaused(address _user, uint256 _amount, uint256 _referrerId) public {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
         presaleContract.pause();
@@ -111,12 +111,12 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.expectRevert("Pausable: paused");
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount, _referrerId);
+        presaleContract.buyWithBnb(_amount, _referrerId);
     }
 
-    /// @custom:function buyWithETH
+    /// @custom:function buyWithBNB
     /// @notice Execution should be reverted if user blacklisted
-    function testFuzz_BuyWithEth_RevertOn_BlacklistedUserCall(
+    function testFuzz_BuyWithBnb_RevertOn_BlacklistedUserCall(
         address _user,
         uint256 _amount,
         uint256 _referrerId
@@ -131,59 +131,59 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount, _referrerId);
+        presaleContract.buyWithBnb(_amount, _referrerId);
     }
 
-    /// @custom:function buyWithUSDT
+    /// @custom:function buyWithBUSD
     /// @notice Expected result:
     ///         - amount of purchased buy user tokens was increased
     ///         - TokensBought event emitted with passed referal id
-    ///         - sent ETH were transferred to presale contract owner
-    function testFuzz_BuyWithUSDT(address _user, uint256 _amount, uint256 _referrerId) public {
+    ///         - sent BNB were transferred to presale contract owner
+    function testFuzz_BuyWithBUSD(address _user, uint256 _amount, uint256 _referrerId) public {
         vm.assume(_user != address(0));
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
-        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
-        deal(address(mockUSDT), _user, priceInUSDT, true);
+        (uint256 priceInBNB, uint256 priceInBUSD) = presaleContract.getPrice(_amount);
+        deal(address(mockBUSD), _user, priceInBUSD, true);
 
-        uint256 balanceUserBefore = mockUSDTWrapped.balanceOf(_user);
-        uint256 balanceOwnerBefore = mockUSDTWrapped.balanceOf(presaleContract.owner());
+        uint256 balanceUserBefore = mockBUSDWrapped.balanceOf(_user);
+        uint256 balanceOwnerBefore = mockBUSDWrapped.balanceOf(presaleContract.owner());
         uint256 tokensPurchasedBefore = presaleContract.purchasedTokens(_user);
 
         uint256 totalTokensSoldBefore = presaleContract.totalTokensSold();
 
         vm.prank(_user);
-        address(mockUSDT).call(
-            abi.encodeWithSignature("approve(address,uint256)", address(presaleContract), priceInUSDT)
+        address(mockBUSD).call(
+            abi.encodeWithSignature("approve(address,uint256)", address(presaleContract), priceInBUSD)
         );
 
         vm.expectEmit(true, true, true, true);
-        emit TokensBought(_user, _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
+        emit TokensBought(_user, _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithBUSD(_amount, _referrerId);
 
-        assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - priceInUSDT);
-        assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInUSDT);
+        assertEq(mockBUSDWrapped.balanceOf(_user), balanceUserBefore - priceInBUSD);
+        assertEq(mockBUSDWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInBUSD);
         assertEq(presaleContract.purchasedTokens(_user), tokensPurchasedBefore + _amount);
         assertEq(presaleContract.totalTokensSold(), totalTokensSoldBefore + _amount);
     }
 
-    /// @custom:function buyWithUSDT
+    /// @custom:function buyWithBUSD
     /// @notice Execution should be reverted if trying to purchase 0 tokens
-    function testFuzz_BuyWithUSDT_RevertOn_PurchasingZeroTokens(address _user, uint256 _referrerId) public {
+    function testFuzz_BuyWithBUSD_RevertOn_PurchasingZeroTokens(address _user, uint256 _referrerId) public {
         vm.assume(_user != address(0));
 
         vm.expectRevert(abi.encodeWithSelector(BuyAtLeastOneToken.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(0, _referrerId);
+        presaleContract.buyWithBUSD(0, _referrerId);
     }
 
-    /// @custom:function buyWithUSDT
+    /// @custom:function buyWithBUSD
     /// @notice Execution should be reverted if trying to purchase amount of tokens that overflows presale limit
-    function testFuzz_BuyWithUSDT_RevertOn_PurchasingMoreTokensThanPresaleLimit(
+    function testFuzz_BuyWithBUSD_RevertOn_PurchasingMoreTokensThanPresaleLimit(
         address _user,
         uint256 _amount,
         uint256 _referrerId
@@ -198,12 +198,12 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         );
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithBUSD(_amount, _referrerId);
     }
 
-    /// @custom:function buyWithUSDT
+    /// @custom:function buyWithBUSD
     /// @notice Execution should be reverted if provided allowance is not enough
-    function testFuzz_BuyWithUSDT_RevertOn_NotEnoughAllowance(
+    function testFuzz_BuyWithBUSD_RevertOn_NotEnoughAllowance(
         address _user,
         uint256 _amount,
         uint256 _referrerId
@@ -211,17 +211,17 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
-        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        (uint256 priceInBNB, uint256 priceInBUSD) = presaleContract.getPrice(_amount);
 
-        vm.expectRevert(abi.encodeWithSelector(NotEnoughAllowance.selector, 0, priceInUSDT));
+        vm.expectRevert(abi.encodeWithSelector(NotEnoughAllowance.selector, 0, priceInBUSD));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithBUSD(_amount, _referrerId);
     }
 
-    /// @custom:function buyWithUSDT
+    /// @custom:function buyWithBUSD
     /// @notice Execution should be reverted if contract is paused
-    function testFuzz_BuyWithUSDT_RevertWhen_ContractPaused(
+    function testFuzz_BuyWithBUSD_RevertWhen_ContractPaused(
         address _user,
         uint256 _amount,
         uint256 _referrerId
@@ -229,18 +229,18 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.assume(_amount > 0);
         vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
 
-        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        (uint256 priceInBNB, uint256 priceInBUSD) = presaleContract.getPrice(_amount);
         presaleContract.pause();
 
         vm.expectRevert("Pausable: paused");
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithBUSD(_amount, _referrerId);
     }
 
-    /// @custom:function buyWithUSDT
+    /// @custom:function buyWithBUSD
     /// @notice Execution should be reverted if user blacklisted
-    function testFuzz_BuyWithUSDT_RevertOn_BlacklistedUserCall(
+    function testFuzz_BuyWithBUSD_RevertOn_BlacklistedUserCall(
         address _user,
         uint256 _amount,
         uint256 _referrerId
@@ -255,7 +255,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithBUSD(_amount, _referrerId);
     }
 
     /// @custom:function claim

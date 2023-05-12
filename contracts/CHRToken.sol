@@ -5,7 +5,7 @@ import "./openzeppelin/token/ERC20/ERC20.sol";
 import "./openzeppelin/access/Ownable.sol";
 
 contract CHRToken is ERC20, Ownable {
-    constructor(uint256 _initialSupply) ERC20("Chancer", "CHR") Ownable() {
+    constructor(uint256 _initialSupply) ERC20("Chancer", "$CHANCE") Ownable() {
         _mint(msg.sender, _initialSupply * 10 ** decimals());
     }
 
