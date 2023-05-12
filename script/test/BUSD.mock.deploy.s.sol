@@ -8,7 +8,7 @@ contract BUSDMockDeployScript is Script {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address USDTMockContract = deployCode("BUSD.mock.sol:BUSDMock", abi.encode());
+        address BUSDMockContract = deployCode("BUSD.mock.sol:BUSDMock", abi.encode());
 
         vm.stopBroadcast();
     }
