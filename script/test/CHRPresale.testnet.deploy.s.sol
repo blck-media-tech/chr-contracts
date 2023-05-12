@@ -5,9 +5,9 @@ import "forge-std/Script.sol";
 import "contracts/test/CHRPresale.testnet.sol";
 
 contract CHRPresaleTestnetDeployScript is Script {
-    address tokenContract = 0xe94aEBBf933EC1E50Fa6efc5DcC30A3A52614a4C;
-    address mockUSDT = 0x6b423B7Dd9c36AeDcF16525e6Eb827c7a3a4FA11;
-    address mockAggregator = 0x6815E42D850ff28DFB29e92320BcF2c6DfADCb0b;
+    address tokenContract = 0xBdB6016CdFea496aAFD5feD0B680fD9fbc0818b3;
+    address mockBUSD = 0x769227dA80e38511cA261874F1542Ce866A2957b;
+    address mockAggregator = 0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526;
 
     uint32 saleStartTime = 1680739200;
     uint32 saleEndTime = 1688162400;
@@ -26,19 +26,19 @@ contract CHRPresaleTestnetDeployScript is Script {
         818_771_403, // + 100_000_000
         961_628_546 // + 142_857_143
     ];
-    uint16[12] pricePerStage = [
-        10_000,
-        11_000,
-        12_000,
-        13_000,
-        14_000,
-        15_000,
-        16_000,
-        17_000,
-        18_000,
-        19_000,
-        20_000,
-        21_000
+    uint64[12] pricePerStage = [
+        10_000_000_000_000_000,
+        11_000_000_000_000_000,
+        12_000_000_000_000_000,
+        13_000_000_000_000_000,
+        14_000_000_000_000_000,
+        15_000_000_000_000_000,
+        16_000_000_000_000_000,
+        17_000_000_000_000_000,
+        18_000_000_000_000_000,
+        19_000_000_000_000_000,
+        20_000_000_000_000_000,
+        21_000_000_000_000_000
     ];
 
     function run() external {
@@ -48,7 +48,7 @@ contract CHRPresaleTestnetDeployScript is Script {
         CHRPresaleTestnet presaleContract = new CHRPresaleTestnet(
             tokenContract,
             mockAggregator,
-            mockUSDT,
+            mockBUSD,
             saleStartTime,
             saleEndTime,
             limitPerStage,

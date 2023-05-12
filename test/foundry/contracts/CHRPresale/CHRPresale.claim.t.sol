@@ -15,7 +15,7 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
         presaleContract = new CHRPresaleHarness(
             address(tokenContract),
             address(mockAggregator),
-            address(mockUSDT),
+            address(mockBUSD),
             saleStartTime,
             saleEndTime,
             limitPerStage,
@@ -31,7 +31,7 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
     function test_SetUpState() public override {
         assertEq(address(presaleContract.saleToken()), address(tokenContract));
         assertEq(address(presaleContract.oracle()), address(mockAggregator));
-        assertEq(address(presaleContract.usdtToken()), address(mockUSDT));
+        assertEq(address(presaleContract.busdToken()), address(mockBUSD));
         assertEq(presaleContract.totalTokensSold(), 0);
         assertEq(presaleContract.saleStartTime(), block.timestamp - timeDelay * 2);
         assertEq(presaleContract.saleEndTime(), block.timestamp - timeDelay);
@@ -39,22 +39,22 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
         assertEq(presaleContract.currentStage(), 0);
     }
 
-    /// @custom:function buyWithETH
-    /// @notice User shouldn't be able to buy with ETH after presale ended
-    function testFuzz_BuyWithEth_RevertWhen_ClaimStarted(uint256 _amount, address _user, uint256 _referrerId) public {
+    /// @custom:function buyWithBNB
+    /// @notice User shouldn't be able to buy with BNB after presale ended
+    function testFuzz_BuyWithBnb_RevertWhen_ClaimStarted(uint256 _amount, address _user, uint256 _referrerId) public {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount, _referrerId);
+        presaleContract.buyWithBnb(_amount, _referrerId);
     }
 
-    /// @custom:function buyWithUSDT
-    /// @notice User shouldn't be able to buy with USDT after presale ended
-    function testFuzz_BuyWithUSDT_RevertWhen_ClaimStarted(uint256 _amount, address _user, uint256 _referrerId) public {
+    /// @custom:function buyWithBUSD
+    /// @notice User shouldn't be able to buy with BUSD after presale ended
+    function testFuzz_BuyWithBUSD_RevertWhen_ClaimStarted(uint256 _amount, address _user, uint256 _referrerId) public {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithBUSD(_amount, _referrerId);
     }
 
     /// @custom:function claim

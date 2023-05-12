@@ -10,23 +10,23 @@ contract CHRPresaleTestnetHarness is CHRPresaleTestnet {
     constructor(
         address _saleToken,
         address _oracle,
-        address _usdt,
+        address _busd,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
-        uint16[12] memory _pricePerStage
-    ) CHRPresaleTestnet(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
+        uint64[12] memory _pricePerStage
+    ) CHRPresaleTestnet(_saleToken, _oracle, _busd, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     function exposed_sendValue(address payable _recipient, uint256 _ethAmount) public {
         _sendValue(_recipient, _ethAmount);
     }
 
-    function exposed_calculatePriceInUSDTForConditions(
+    function exposed_calculatePriceInBUSDForConditions(
         uint256 _amount,
         uint256 _currentStage,
         uint256 _totalTokensSold
     ) public view returns (uint256 cost) {
-        cost = _calculatePriceInUSDTForConditions(_amount, _currentStage, _totalTokensSold);
+        cost = _calculatePriceInBUSDForConditions(_amount, _currentStage, _totalTokensSold);
     }
 
     function exposed_getStageByTotalSoldAmount() public view returns (uint8) {
@@ -56,8 +56,8 @@ contract CHRPresaleTestnetHelper is Test, CHRPresaleHelper {
     constructor() {
         tokenContract = new CHRToken(totalSupply);
         mockAggregator = new ChainLinkAggregatorMock();
-        mockUSDT = deployCode("USDT.mock.sol:USDTMock", abi.encode(0, "USDT mock", "USDT", 6));
-        mockUSDTWrapped = IERC20(mockUSDT);
+        mockBUSD = deployCode("BUSD.mock.sol:BUSDMock", abi.encode(0, "BUSD mock", "BUSD", 6));
+        mockBUSDWrapped = IERC20(mockBUSD);
     }
 
     function helper_prepareToClaim(address _user, uint256 _amount) public {

@@ -10,12 +10,12 @@ contract CHRPresaleTestnet is CHRPresale {
     constructor(
         address _saleToken,
         address _oracle,
-        address _usdt,
+        address _busd,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
-        uint16[12] memory _pricePerStage
-    ) CHRPresale(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
+        uint64[12] memory _pricePerStage
+    ) CHRPresale(_saleToken, _oracle, _busd, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     function t_resetUser(address _user) public {
         hasClaimed[_user] = false;
