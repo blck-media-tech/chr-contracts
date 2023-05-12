@@ -17,10 +17,10 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Address of token contract
     address public immutable saleToken;
 
-    /// @notice Address of USDT token
+    /// @notice Address of BUSD token
     IERC20 public immutable usdtToken;
 
-    /// @notice Address of chainlink ETH/USD price feed
+    /// @notice Address of chainlink BNB/USD price feed
     IChainlinkPriceFeed public immutable oracle;
 
     /// @notice Last stage index
@@ -50,10 +50,10 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Stores the number of tokens purchased by each user that have not yet been claimed
     mapping(address => uint256) public purchasedTokens;
 
-    /// @notice Indicates whether the user is blacklisted or not
+    /// @notice Indicates whbnber the user is blacklisted or not
     mapping(address => bool) public blacklist;
 
-    /// @notice Indicates whether the user already claimed or not
+    /// @notice Indicates whbnber the user already claimed or not
     mapping(address => bool) public hasClaimed;
 
     /// @notice Checks that it is now possible to purchase passed amount tokens
@@ -74,8 +74,8 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
 
     /// @notice Creates the contract
     /// @param _saleToken      - Address of presailing token
-    /// @param _oracle         - Address of Chainlink ETH/USD price feed
-    /// @param _usdt           - Address of USDT token
+    /// @param _oracle         - Address of Chainlink BNB/USD price feed
+    /// @param _usdt           - Address of BUSD token
     /// @param _limitPerStage  - Array of prices for each presale stage
     /// @param _pricePerStage  - Array of totalTokenSold limit for each stage
     /// @param _saleStartTime  - Sale start time
@@ -90,7 +90,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         uint64[12] memory _pricePerStage
     ) {
         if (_oracle == address(0)) revert ZeroAddress("Aggregator");
-        if (_usdt == address(0)) revert ZeroAddress("USDT");
+        if (_usdt == address(0)) revert ZeroAddress("BUSD");
         if (_saleToken == address(0)) revert ZeroAddress("Sale token");
 
         saleToken = _saleToken;
@@ -154,41 +154,41 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         claimStartTime = _claimStartTime;
     }
 
-    /// @notice To buy into a presale using ETH with referrer
+    /// @notice To buy into a presale using BNB with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithEth(
+    function buyWithBnb(
         uint256 _amount,
         uint256 _referrerId
     ) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
-        (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
-        if (msg.value < priceInETH) revert NotEnoughETH(msg.value, priceInETH);
-        uint256 excess = msg.value - priceInETH;
+        (uint256 priceInBNB, uint256 priceInBUSD) = getPrice(_amount);
+        if (msg.value < priceInBNB) revert NotEnoughBNB(msg.value, priceInBNB);
+        uint256 excess = msg.value - priceInBNB;
         totalTokensSold += _amount;
         purchasedTokens[_msgSender()] += _amount;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
-        _sendValue(payable(owner()), priceInETH);
+        _sendValue(payable(owner()), priceInBNB);
         if (excess > 0) _sendValue(payable(_msgSender()), excess);
-        emit TokensBought(_msgSender(), _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
+        emit TokensBought(_msgSender(), _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
     }
 
-    /// @notice To buy into a presale using USDT with referrer
+    /// @notice To buy into a presale using BUSD with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithUSDT(
+    function buyWithBUSD(
         uint256 _amount,
         uint256 _referrerId
     ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
-        (uint256 priceInETH, uint256 priceInUSDT) = getPrice(_amount);
+        (uint256 priceInBNB, uint256 priceInBUSD) = getPrice(_amount);
         uint256 allowance = usdtToken.allowance(_msgSender(), address(this));
-        if (priceInUSDT > allowance) revert NotEnoughAllowance(allowance, priceInUSDT);
+        if (priceInBUSD > allowance) revert NotEnoughAllowance(allowance, priceInBUSD);
         totalTokensSold += _amount;
         purchasedTokens[_msgSender()] += _amount;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
-        usdtToken.safeTransferFrom(_msgSender(), owner(), priceInUSDT);
-        emit TokensBought(_msgSender(), _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
+        usdtToken.safeTransferFrom(_msgSender(), owner(), priceInBUSD);
+        emit TokensBought(_msgSender(), _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
     }
 
     /// @notice To claim tokens after claiming starts
@@ -219,40 +219,39 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
 
     /// @notice Returns total price of sold tokens
     function totalSoldPrice() external view returns (uint256) {
-        return _calculatePriceInUSDTForConditions(totalTokensSold, 0, 0);
+        return _calculatePriceInBUSDForConditions(totalTokensSold, 0, 0);
     }
 
-    /// @notice Helper function to calculate price in ETH and USDT for given amount
+    /// @notice Helper function to calculate price in BNB and BUSD for given amount
     /// @param _amount - Amount of tokens to buy
-    /// @return priceInETH - price for passed amount of tokens in ETH in 1e18 format
-    /// @return priceInUSDT - price for passed amount of tokens in USDT in 1e6 format
-    function getPrice(uint256 _amount) public view returns (uint256 priceInETH, uint256 priceInUSDT) {
+    /// @return priceInBNB - price for passed amount of tokens in BNB in 1e18 format
+    /// @return priceInBUSD - price for passed amount of tokens in BUSD in 1e6 format
+    function getPrice(uint256 _amount) public view returns (uint256 priceInBNB, uint256 priceInBUSD) {
         if (_amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX])
             revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
-        priceInUSDT = _calculatePriceInUSDTForConditions(_amount, currentStage, totalTokensSold);
+        priceInBUSD = _calculatePriceInBUSDForConditions(_amount, currentStage, totalTokensSold);
 
         (uint80 roundID, int256 price, , uint256 updatedAt, uint80 answeredInRound) = oracle.latestRoundData();
         require(answeredInRound >= roundID, "Stale price");
         require(updatedAt >= block.timestamp - 3 hours, "Stale price");
         require(price > 0, "Invalid price");
-        priceInETH = (priceInUSDT * 1e20) / uint256(price);
-        //We need 1e20 to get resulting value in wei(1e18)
+        priceInBNB = (priceInBUSD * 1e8) / uint256(price);
     }
 
-    /// @notice For sending ETH from contract
+    /// @notice For sending BNB from contract
     /// @param _recipient - Recipient address
-    /// @param _ethAmount - Amount of ETH to send in wei
-    function _sendValue(address payable _recipient, uint256 _ethAmount) internal {
-        require(address(this).balance >= _ethAmount, "Low balance");
-        (bool success, ) = _recipient.call{ value: _ethAmount }("");
-        require(success, "ETH Payment failed");
+    /// @param _bnbAmount - Amount of BNB to send in wei
+    function _sendValue(address payable _recipient, uint256 _bnbAmount) internal {
+        require(address(this).balance >= _bnbAmount, "Low balance");
+        (bool success, ) = _recipient.call{ value: _bnbAmount }("");
+        require(success, "BNB Payment failed");
     }
 
-    /// @notice Recursively calculate USDT cost for specified conditions
+    /// @notice Recursively calculate BUSD cost for specified conditions
     /// @param _amount           - Amount of tokens to calculate price
     /// @param _currentStage     - Starting stage to calculate price
     /// @param _totalTokensSold  - Starting total token sold amount to calculate price
-    function _calculatePriceInUSDTForConditions(
+    function _calculatePriceInBUSDForConditions(
         uint256 _amount,
         uint256 _currentStage,
         uint256 _totalTokensSold
@@ -265,7 +264,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
             cost =
                 currentStageAmount *
                 pricePerStage[_currentStage] +
-                _calculatePriceInUSDTForConditions(nextStageAmount, _currentStage + 1, limitPerStage[_currentStage]);
+                _calculatePriceInBUSDForConditions(nextStageAmount, _currentStage + 1, limitPerStage[_currentStage]);
         }
 
         return cost;

@@ -10,7 +10,7 @@ interface IPresale {
         address indexed user,
         uint256 amount,
         uint256 totalCostInUsd,
-        uint256 totalCostInETH,
+        uint256 totalCostInBNB,
         uint256 indexed referrerId,
         uint256 timestamp
     );
@@ -32,14 +32,14 @@ interface IPresale {
     /// @param contractName - name indicator of the corresponding contract
     error ZeroAddress(string contractName);
 
-    /// @notice Passed amount of ETH is not enough to buy requested amount of tokens
-    /// @param sent - amount of ETH was sent
-    /// @param expected - amount of ETH necessary to buy requested amount of tokens
-    error NotEnoughETH(uint256 sent, uint256 expected);
+    /// @notice Passed amount of BNB is not enough to buy requested amount of tokens
+    /// @param sent - amount of BNB was sent
+    /// @param expected - amount of BNB necessary to buy requested amount of tokens
+    error NotEnoughBNB(uint256 sent, uint256 expected);
 
     /// @notice Provided allowance is not enough to buy requested amount of tokens
     /// @param provided - amount of allowance provided to the contract
-    /// @param expected - amount of USDT necessary to buy requested amount of tokens
+    /// @param expected - amount of BUSD necessary to buy requested amount of tokens
     error NotEnoughAllowance(uint256 provided, uint256 expected);
 
     /// @notice User already claimed bought tokens
