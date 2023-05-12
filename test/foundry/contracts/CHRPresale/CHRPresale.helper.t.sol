@@ -24,12 +24,12 @@ contract CHRPresaleHarness is CHRPresale {
     }
 
     /// @notice exposing internal function for testing
-    function exposed_calculatePriceInUSDTForConditions(
+    function exposed_calculatePriceInBUSDForConditions(
         uint256 _amount,
         uint256 _currentStage,
         uint256 _totalTokensSold
     ) public view returns (uint256) {
-        return _calculatePriceInUSDTForConditions(_amount, _currentStage, _totalTokensSold);
+        return _calculatePriceInBUSDForConditions(_amount, _currentStage, _totalTokensSold);
     }
 
     /// @notice exposing internal function for testing
@@ -56,8 +56,8 @@ contract CHRPresaleHelper is Test {
     CHRPresaleHarness presaleContract;
     CHRToken tokenContract;
     ChainLinkAggregatorMock mockAggregator;
-    address mockUSDT;
-    IERC20 mockUSDTWrapped;
+    address mockBUSD;
+    IERC20 mockBUSDWrapped;
 
     uint256 totalSupply = 1_000_000_000;
 
@@ -94,8 +94,8 @@ contract CHRPresaleHelper is Test {
     constructor() {
         tokenContract = new CHRToken(totalSupply);
         mockAggregator = new ChainLinkAggregatorMock();
-        mockUSDT = deployCode("BUSD.mock.sol:BUSDMock", abi.encode());
-        mockUSDTWrapped = IERC20(mockUSDT);
+        mockBUSD = deployCode("BUSD.mock.sol:BUSDMock", abi.encode());
+        mockBUSDWrapped = IERC20(mockBUSD);
     }
 
     /// @notice Helper for purchasing tokens
@@ -103,16 +103,16 @@ contract CHRPresaleHelper is Test {
     function helper_purchaseTokens(address _user, uint256 _amount, address _owner, uint256 _referrerId) public {
         uint256 startTime = block.timestamp;
         vm.warp(presaleContract.saleStartTime());
-        (uint256 priceInETH, uint256 priceInUSDT) = presaleContract.getPrice(_amount);
+        (uint256 priceInBNB, uint256 priceInBUSD) = presaleContract.getPrice(_amount);
 
         vm.prank(presaleContract.owner());
         presaleContract.transferOwnership(_owner);
 
-        vm.deal(_user, priceInETH);
+        vm.deal(_user, priceInBNB);
         deal(address(tokenContract), address(presaleContract), _amount * 1e18, true);
 
         vm.prank(_user);
-        presaleContract.buyWithEth{ value: priceInETH }(_amount, _referrerId);
+        presaleContract.buyWithBnb{ value: priceInBNB }(_amount, _referrerId);
         vm.warp(startTime);
     }
 }

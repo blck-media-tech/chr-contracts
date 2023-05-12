@@ -16,7 +16,7 @@ contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
         presaleContract = new CHRPresaleHarness(
             address(tokenContract),
             address(mockAggregator),
-            address(mockUSDT),
+            address(mockBUSD),
             saleStartTime,
             saleEndTime,
             limitPerStage,
@@ -28,7 +28,7 @@ contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
     function test_SetUpState() public virtual {
         assertEq(address(presaleContract.saleToken()), address(tokenContract));
         assertEq(address(presaleContract.oracle()), address(mockAggregator));
-        assertEq(address(presaleContract.usdtToken()), address(mockUSDT));
+        assertEq(address(presaleContract.usdtToken()), address(mockBUSD));
         assertEq(presaleContract.totalTokensSold(), 0);
         assertEq(presaleContract.saleStartTime(), block.timestamp + timeDelay);
         assertEq(presaleContract.saleEndTime(), block.timestamp + timeDelay * 2);
@@ -277,7 +277,7 @@ contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
 
     /// @custom:function totalSoldPrice
     /// @notice Expected result:
-    ///         - returned price of all sold tokens in USDT
+    ///         - returned price of all sold tokens in BUSD
     function testFuzz_TotalSoldPrice(uint256 _totalTokensSold) public {
         vm.assume(_totalTokensSold <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
         presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
