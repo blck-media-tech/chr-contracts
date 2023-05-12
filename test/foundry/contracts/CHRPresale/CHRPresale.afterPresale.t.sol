@@ -28,7 +28,7 @@ contract CHRPresaleTest_AfterPresale is CHRPresaleTest_TimeIndependent {
     function test_SetUpState() public override {
         assertEq(address(presaleContract.saleToken()), address(tokenContract));
         assertEq(address(presaleContract.oracle()), address(mockAggregator));
-        assertEq(address(presaleContract.usdtToken()), address(mockBUSD));
+        assertEq(address(presaleContract.busdToken()), address(mockBUSD));
         assertEq(presaleContract.totalTokensSold(), 0);
         assertEq(presaleContract.saleStartTime(), block.timestamp - timeDelay);
         assertEq(presaleContract.saleEndTime(), block.timestamp);

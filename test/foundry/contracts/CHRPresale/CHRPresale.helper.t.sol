@@ -11,12 +11,12 @@ contract CHRPresaleHarness is CHRPresale {
     constructor(
         address _saleToken,
         address _oracle,
-        address _usdt,
+        address _busd,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
         uint64[12] memory _pricePerStage
-    ) CHRPresale(_saleToken, _oracle, _usdt, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
+    ) CHRPresale(_saleToken, _oracle, _busd, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     /// @notice exposing internal function for testing
     function exposed_sendValue(address payable _recipient, uint256 _ethAmount) public {

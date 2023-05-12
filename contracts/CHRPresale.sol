@@ -18,7 +18,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     address public immutable saleToken;
 
     /// @notice Address of BUSD token
-    IERC20 public immutable usdtToken;
+    IERC20 public immutable busdToken;
 
     /// @notice Address of chainlink BNB/USD price feed
     IChainlinkPriceFeed public immutable oracle;
@@ -75,7 +75,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Creates the contract
     /// @param _saleToken      - Address of presailing token
     /// @param _oracle         - Address of Chainlink BNB/USD price feed
-    /// @param _usdt           - Address of BUSD token
+    /// @param _busd           - Address of BUSD token
     /// @param _limitPerStage  - Array of prices for each presale stage
     /// @param _pricePerStage  - Array of totalTokenSold limit for each stage
     /// @param _saleStartTime  - Sale start time
@@ -83,19 +83,19 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     constructor(
         address _saleToken,
         address _oracle,
-        address _usdt,
+        address _busd,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
         uint64[12] memory _pricePerStage
     ) {
         if (_oracle == address(0)) revert ZeroAddress("Aggregator");
-        if (_usdt == address(0)) revert ZeroAddress("BUSD");
+        if (_busd == address(0)) revert ZeroAddress("BUSD");
         if (_saleToken == address(0)) revert ZeroAddress("Sale token");
 
         saleToken = _saleToken;
         oracle = IChainlinkPriceFeed(_oracle);
-        usdtToken = IERC20(_usdt);
+        busdToken = IERC20(_busd);
         limitPerStage = _limitPerStage;
         pricePerStage = _pricePerStage;
         saleStartTime = _saleStartTime;
@@ -181,13 +181,13 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         uint256 _referrerId
     ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
         (uint256 priceInBNB, uint256 priceInBUSD) = getPrice(_amount);
-        uint256 allowance = usdtToken.allowance(_msgSender(), address(this));
+        uint256 allowance = busdToken.allowance(_msgSender(), address(this));
         if (priceInBUSD > allowance) revert NotEnoughAllowance(allowance, priceInBUSD);
         totalTokensSold += _amount;
         purchasedTokens[_msgSender()] += _amount;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
-        usdtToken.safeTransferFrom(_msgSender(), owner(), priceInBUSD);
+        busdToken.safeTransferFrom(_msgSender(), owner(), priceInBUSD);
         emit TokensBought(_msgSender(), _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
     }
 
