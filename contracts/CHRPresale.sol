@@ -149,7 +149,9 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To set the claim start time
     /// @param _claimStartTime - claim start time
     /// @notice Function also makes sure that presale have enough sale token balance
+    /// @dev Function can be executed only after the end of the presale, so totalTokensSold value here is final and will not change
     function configureClaim(uint256 _claimStartTime) external onlyOwner {
+        if (block.timestamp < saleEndTime) revert PresaleNotEnded();
         require(IERC20(saleToken).balanceOf(address(this)) >= totalTokensSold * 1e18, "Not enough tokens on contract");
         claimStartTime = _claimStartTime;
     }

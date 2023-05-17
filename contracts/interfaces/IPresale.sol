@@ -18,6 +18,9 @@ interface IPresale {
     /// @notice Function can not be called now
     error InvalidTimeframe();
 
+    /// @notice Function can not be called before end of presale
+    error PresaleNotEnded();
+
     /// @notice Trying to buy 0 tokens
     error BuyAtLeastOneToken();
 
