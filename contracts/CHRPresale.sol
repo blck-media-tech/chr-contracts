@@ -38,7 +38,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Timestamp when presale ends
     uint256 public saleEndTime;
 
-    /// @notice Amount of totalTokensSold limits for each stage
+    /// @notice Array representing cap values of totalTokensSold for each stage
     uint32[12] public limitPerStage;
 
     /// @notice Sale prices for each stage
@@ -174,7 +174,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         _sendValue(payable(owner()), priceInBNB);
         if (excess > 0) _sendValue(payable(_msgSender()), excess);
-        emit TokensBought(_msgSender(), _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
+        emit TokensBought(_msgSender(), "BNB", _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
     }
 
     /// @notice To buy into a presale using BUSD with referrer
@@ -192,7 +192,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         busdToken.safeTransferFrom(_msgSender(), owner(), priceInBUSD);
-        emit TokensBought(_msgSender(), _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
+        emit TokensBought(_msgSender(), "BUSD", _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
     }
 
     /// @notice To claim tokens after claiming starts

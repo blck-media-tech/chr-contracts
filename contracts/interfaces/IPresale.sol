@@ -8,6 +8,7 @@ interface IPresale {
 
     event TokensBought(
         address indexed user,
+        bytes32 indexed purchaseMethod,
         uint256 amount,
         uint256 totalCostInUsd,
         uint256 totalCostInBNB,
