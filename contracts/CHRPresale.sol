@@ -130,13 +130,6 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         while (i < usersAmount) blacklist[_users[i++]] = false;
     }
 
-    /// @notice Returns total price of sold tokens
-    /// @param _tokenAddress - Address of token to rescue
-    /// @param _amount       - Amount of tokens to rescue
-    function rescueERC20(address _tokenAddress, uint256 _amount) external onlyOwner {
-        IERC20(_tokenAddress).safeTransfer(_msgSender(), _amount);
-    }
-
     /// @notice To update the sale start and end times
     /// @param _saleStartTime - New sales start time
     /// @param _saleEndTime   - New sales end time
