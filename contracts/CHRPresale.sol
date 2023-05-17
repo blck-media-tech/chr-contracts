@@ -38,7 +38,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Timestamp when presale ends
     uint256 public saleEndTime;
 
-    /// @notice Amount of totalTokensSold limits for each stage
+    /// @notice Array representing cap values of totalTokensSold for each presale stage
     uint32[12] public limitPerStage;
 
     /// @notice Sale prices for each stage
@@ -76,8 +76,8 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _saleToken      - Address of presailing token
     /// @param _oracle         - Address of Chainlink BNB/USD price feed
     /// @param _busd           - Address of BUSD token
-    /// @param _limitPerStage  - Array of prices for each presale stage
-    /// @param _pricePerStage  - Array of totalTokenSold limit for each stage
+    /// @param _limitPerStage  - Array representing cap values of totalTokensSold for each presale stage
+    /// @param _pricePerStage  - Array of prices for each presale stage
     /// @param _saleStartTime  - Sale start time
     /// @param _saleEndTime    - Sale end time
     constructor(
@@ -119,7 +119,11 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function addToBlacklist(address[] calldata _users) external onlyOwner {
         uint256 usersAmount = _users.length;
         uint256 i = 0;
-        while (i < usersAmount) blacklist[_users[i++]] = true;
+        while (i < usersAmount) {
+            blacklist[_users[i]] = true;
+            emit AddedToBlacklist(_users[i], block.timestamp);
+            i += 1;
+        }
     }
 
     /// @notice To remove users from blacklist
@@ -127,14 +131,11 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function removeFromBlacklist(address[] calldata _users) external onlyOwner {
         uint256 usersAmount = _users.length;
         uint256 i = 0;
-        while (i < usersAmount) blacklist[_users[i++]] = false;
-    }
-
-    /// @notice Returns total price of sold tokens
-    /// @param _tokenAddress - Address of token to rescue
-    /// @param _amount       - Amount of tokens to rescue
-    function rescueERC20(address _tokenAddress, uint256 _amount) external onlyOwner {
-        IERC20(_tokenAddress).safeTransfer(_msgSender(), _amount);
+        while (i < usersAmount) {
+            blacklist[_users[i]] = false;
+            emit RemovedFromBlacklist(_users[i], block.timestamp);
+            i += 1;
+        }
     }
 
     /// @notice To update the sale start and end times
@@ -149,9 +150,12 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To set the claim start time
     /// @param _claimStartTime - claim start time
     /// @notice Function also makes sure that presale have enough sale token balance
+    /// @dev Function can be executed only after the end of the presale, so totalTokensSold value here is final and will not change
     function configureClaim(uint256 _claimStartTime) external onlyOwner {
+        if (block.timestamp < saleEndTime) revert PresaleNotEnded();
         require(IERC20(saleToken).balanceOf(address(this)) >= totalTokensSold * 1e18, "Not enough tokens on contract");
         claimStartTime = _claimStartTime;
+        emit ClaimTimeUpdated(_claimStartTime, block.timestamp);
     }
 
     /// @notice To buy into a presale using BNB with referrer
@@ -170,7 +174,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         _sendValue(payable(owner()), priceInBNB);
         if (excess > 0) _sendValue(payable(_msgSender()), excess);
-        emit TokensBought(_msgSender(), _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
+        emit TokensBought(_msgSender(), "BNB", _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
     }
 
     /// @notice To buy into a presale using BUSD with referrer
@@ -188,7 +192,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         busdToken.safeTransferFrom(_msgSender(), owner(), priceInBUSD);
-        emit TokensBought(_msgSender(), _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
+        emit TokensBought(_msgSender(), "BUSD", _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
     }
 
     /// @notice To claim tokens after claiming starts
@@ -225,7 +229,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Helper function to calculate price in BNB and BUSD for given amount
     /// @param _amount - Amount of tokens to buy
     /// @return priceInBNB - price for passed amount of tokens in BNB in 1e18 format
-    /// @return priceInBUSD - price for passed amount of tokens in BUSD in 1e6 format
+    /// @return priceInBUSD - price for passed amount of tokens in BUSD in 1e18 format
     function getPrice(uint256 _amount) public view returns (uint256 priceInBNB, uint256 priceInBUSD) {
         if (_amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX])
             revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);

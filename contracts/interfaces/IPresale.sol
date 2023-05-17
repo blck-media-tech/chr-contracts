@@ -8,6 +8,7 @@ interface IPresale {
 
     event TokensBought(
         address indexed user,
+        bytes32 indexed purchaseMethod,
         uint256 amount,
         uint256 totalCostInUsd,
         uint256 totalCostInBNB,
@@ -15,8 +16,17 @@ interface IPresale {
         uint256 timestamp
     );
 
+    event AddedToBlacklist(address indexed user, uint256 timestamp);
+
+    event RemovedFromBlacklist(address indexed user, uint256 timestamp);
+
+    event ClaimTimeUpdated(uint256 claimStartTime, uint256 timestamp);
+
     /// @notice Function can not be called now
     error InvalidTimeframe();
+
+    /// @notice Function can not be called before end of presale
+    error PresaleNotEnded();
 
     /// @notice Trying to buy 0 tokens
     error BuyAtLeastOneToken();

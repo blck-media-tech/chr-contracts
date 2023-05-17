@@ -22,9 +22,9 @@ contract CHRPresaleTestnetTest_Claim is CHRPresaleTestnetHelper, CHRPresaleTest_
         );
         presaleContract = CHRPresaleHarness(address(presaleContractTestnet));
 
-        presaleContractTestnet.configureClaim(claimStartTime);
-
         vm.warp(claimStartTime);
+
+        presaleContractTestnet.configureClaim(claimStartTime);
     }
 
     function testFuzz_T_Reset(address _user, uint256 _amount) public {

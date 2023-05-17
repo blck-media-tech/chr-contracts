@@ -385,50 +385,6 @@ contract CHRTokenTest is Test {
         tokenContract.decreaseAllowance(_allowanceTarget, _amount);
     }
 
-    /// @custom:function mint
-    /// @notice Expected result:
-    ///         - passed amount of tokens should be minted to passed address
-    function testFuzz_Mint(address _user, uint248 _amount, uint248 _initialBalance) public {
-        vm.assume(_amount > 0);
-        vm.assume(_user != address(0));
-
-        deal(address(tokenContract), _user, _initialBalance, true);
-
-        uint256 balanceBefore = tokenContract.balanceOf(_user);
-        uint256 totalSupplyBefore = tokenContract.totalSupply();
-
-        vm.prank(tokenContract.owner());
-        tokenContract.mint(_user, _amount);
-
-        assertEq(tokenContract.balanceOf(_user), balanceBefore + _amount);
-        assertEq(tokenContract.totalSupply(), totalSupplyBefore + _amount);
-    }
-
-    /// @custom:function mint
-    /// @notice Should be reverted if caller is not the owner
-    function testFuzz_Mint_RevertOn_NonOwnerCall(address _user, uint248 _amount, uint248 _initialBalance) public {
-        vm.assume(_amount > 0);
-        vm.assume(_user != address(0));
-        vm.assume(_user != tokenContract.owner());
-
-        deal(address(tokenContract), _user, _initialBalance, true);
-
-        vm.expectRevert("Ownable: caller is not the owner");
-
-        vm.prank(_user);
-        tokenContract.mint(_user, _amount);
-    }
-
-    /// @custom:function mint
-    /// @notice Should be reverted if trying to mint to zero address
-    function testFuzz_Mint_RevertOn_MintToZeroAddress(uint256 _amount) public {
-        vm.assume(_amount > 0);
-
-        vm.expectRevert("ERC20: mint to the zero address");
-
-        tokenContract.mint(address(0), _amount);
-    }
-
     /// @custom:function burn
     /// @notice Expected result:
     ///         - passed amount of tokens should be burned from passed address

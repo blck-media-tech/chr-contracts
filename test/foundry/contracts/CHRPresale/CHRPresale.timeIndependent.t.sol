@@ -111,6 +111,11 @@ contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
     /// @notice Expected result:
     ///         - all passed addresses added to blacklist
     function testFuzz_AddToBlacklist(address[] calldata _users) public {
+        for (uint256 i = 0; i < _users.length; i += 1) {
+            vm.expectEmit(true, true, true, true);
+            emit AddedToBlacklist(_users[i], block.timestamp);
+        }
+
         presaleContract.addToBlacklist(_users);
 
         for (uint256 i = 0; i < _users.length; i += 1) {
@@ -136,6 +141,8 @@ contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
 
         for (uint256 i = 0; i < _users.length; i += 1) {
             assertEq(presaleContract.blacklist(_users[i]), true);
+            vm.expectEmit(true, true, true, true);
+            emit RemovedFromBlacklist(_users[i], block.timestamp);
         }
 
         presaleContract.removeFromBlacklist(_users);
@@ -162,38 +169,6 @@ contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
         presaleContract.addToBlacklist(_users);
     }
 
-    /// @custom:function rescueERC20
-    /// @notice Expected result:
-    ///         - all passed addresses removed from blacklist
-    function testFuzz_RescueERC20(uint256 _amount) public {
-        ERC20 token = new ERC20("Test ERC20", "TERC");
-        assertEq(token.balanceOf(address(presaleContract)), 0);
-        deal(address(token), address(presaleContract), _amount, true);
-        assertEq(token.balanceOf(address(presaleContract)), _amount);
-        assertEq(token.balanceOf(address(this)), 0);
-
-        presaleContract.rescueERC20(address(token), _amount);
-
-        assertEq(token.balanceOf(address(presaleContract)), 0);
-        assertEq(token.balanceOf(address(this)), _amount);
-    }
-
-    /// @custom:function rescueERC20
-    /// @notice Should be reverted if caller is not the owner
-    function testFuzz_RescueERC20_RevertOn_NonOwnerCall(uint256 _amount, address _nonOwner) public {
-        vm.assume(_nonOwner != address(this));
-        ERC20 token = new ERC20("Test ERC20", "TERC");
-        assertEq(token.balanceOf(address(presaleContract)), 0);
-        deal(address(token), address(presaleContract), _amount, true);
-        assertEq(token.balanceOf(address(presaleContract)), _amount);
-        assertEq(token.balanceOf(address(this)), 0);
-
-        vm.expectRevert("Ownable: caller is not the owner");
-
-        vm.prank(_nonOwner);
-        presaleContract.rescueERC20(address(token), _amount);
-    }
-
     /// @custom:function configureSaleTimeframe
     /// @notice Expected result:
     ///         - saleStartTime and saleEndTime set to passed values
@@ -218,19 +193,6 @@ contract CHRPresaleTest_TimeIndependent is CHRPresaleHelper, IPresale {
 
         vm.prank(_nonOwner);
         presaleContract.configureSaleTimeframe(_saleStartTime, _saleEndTime);
-    }
-
-    /// @custom:function configureClaim
-    /// @notice Expected result:
-    ///         - claimStartTime
-    function testFuzz_ConfigureClaim(uint256 _totalTokensSold, uint256 _claimStartTime) public {
-        vm.assume(type(uint256).max / 1e18 > _totalTokensSold);
-        presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
-        deal(address(tokenContract), address(presaleContract), _totalTokensSold * 1e18);
-        assertEq(tokenContract.balanceOf(address(presaleContract)), _totalTokensSold * 1e18);
-
-        presaleContract.configureClaim(_claimStartTime);
-        assertEq(presaleContract.claimStartTime(), _claimStartTime);
     }
 
     /// @notice Should be reverted if caller is not the owner

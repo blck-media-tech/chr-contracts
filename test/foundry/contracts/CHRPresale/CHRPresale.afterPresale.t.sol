@@ -54,6 +54,22 @@ contract CHRPresaleTest_AfterPresale is CHRPresaleTest_TimeIndependent {
         presaleContract.buyWithBUSD(_amount, _referrerId);
     }
 
+    /// @custom:function configureClaim
+    /// @notice Expected result:
+    ///         - claimStartTime
+    function testFuzz_ConfigureClaim(uint256 _totalTokensSold, uint256 _claimStartTime) public {
+        vm.assume(type(uint256).max / 1e18 > _totalTokensSold);
+        presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
+        deal(address(tokenContract), address(presaleContract), _totalTokensSold * 1e18);
+        assertEq(tokenContract.balanceOf(address(presaleContract)), _totalTokensSold * 1e18);
+
+        vm.expectEmit(true, true, true, true);
+        emit ClaimTimeUpdated(_claimStartTime, block.timestamp);
+
+        presaleContract.configureClaim(_claimStartTime);
+        assertEq(presaleContract.claimStartTime(), _claimStartTime);
+    }
+
     /// @custom:function claim
     /// @notice User shouldn't be able to claim tokens before claim started
     function testFuzz_Claim_RevertWhen_PresaleEnded(address _user) public {
