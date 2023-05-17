@@ -15,6 +15,12 @@ interface IPresale {
         uint256 timestamp
     );
 
+    event AddedToBlacklist(address indexed user, uint256 timestamp);
+
+    event RemovedFromBlacklist(address indexed user, uint256 timestamp);
+
+    event ClaimTimeUpdated(uint256 claimStartTime, uint256 timestamp);
+
     /// @notice Function can not be called now
     error InvalidTimeframe();
 

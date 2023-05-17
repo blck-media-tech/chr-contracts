@@ -119,7 +119,11 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function addToBlacklist(address[] calldata _users) external onlyOwner {
         uint256 usersAmount = _users.length;
         uint256 i = 0;
-        while (i < usersAmount) blacklist[_users[i++]] = true;
+        while (i < usersAmount) {
+            blacklist[_users[i]] = true;
+            emit AddedToBlacklist(_users[i], block.timestamp);
+            i += 1;
+        }
     }
 
     /// @notice To remove users from blacklist
@@ -127,7 +131,11 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function removeFromBlacklist(address[] calldata _users) external onlyOwner {
         uint256 usersAmount = _users.length;
         uint256 i = 0;
-        while (i < usersAmount) blacklist[_users[i++]] = false;
+        while (i < usersAmount) {
+            blacklist[_users[i]] = false;
+            emit RemovedFromBlacklist(_users[i], block.timestamp);
+            i += 1;
+        }
     }
 
     /// @notice To update the sale start and end times
@@ -147,6 +155,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         if (block.timestamp < saleEndTime) revert PresaleNotEnded();
         require(IERC20(saleToken).balanceOf(address(this)) >= totalTokensSold * 1e18, "Not enough tokens on contract");
         claimStartTime = _claimStartTime;
+        emit ClaimTimeUpdated(_claimStartTime, block.timestamp);
     }
 
     /// @notice To buy into a presale using BNB with referrer
