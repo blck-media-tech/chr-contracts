@@ -220,7 +220,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice Helper function to calculate price in BNB and BUSD for given amount
     /// @param _amount - Amount of tokens to buy
     /// @return priceInBNB - price for passed amount of tokens in BNB in 1e18 format
-    /// @return priceInBUSD - price for passed amount of tokens in BUSD in 1e6 format
+    /// @return priceInBUSD - price for passed amount of tokens in BUSD in 1e18 format
     function getPrice(uint256 _amount) public view returns (uint256 priceInBNB, uint256 priceInBUSD) {
         if (_amount + totalTokensSold > limitPerStage[MAX_STAGE_INDEX])
             revert PresaleLimitExceeded(limitPerStage[MAX_STAGE_INDEX] - totalTokensSold);
