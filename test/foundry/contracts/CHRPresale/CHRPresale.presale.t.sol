@@ -61,7 +61,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         uint256 totalTokensSoldBefore = presaleContract.totalTokensSold();
 
         vm.expectEmit(true, true, true, true);
-        emit TokensBought(_user, _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
+        emit TokensBought(_user, "BNB", _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
 
         vm.prank(_user);
         presaleContract.buyWithBnb{ value: priceInBNB }(_amount, _referrerId);
@@ -159,7 +159,7 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
         );
 
         vm.expectEmit(true, true, true, true);
-        emit TokensBought(_user, _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
+        emit TokensBought(_user, "BUSD", _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
 
         vm.prank(_user);
         presaleContract.buyWithBUSD(_amount, _referrerId);
@@ -256,6 +256,19 @@ contract CHRPresaleTest_Presale is CHRPresaleTest_TimeIndependent {
 
         vm.prank(_user);
         presaleContract.buyWithBUSD(_amount, _referrerId);
+    }
+
+    /// @custom:function configureClaim
+    /// @notice Execution should be reverted if presale is not ended
+    function testFuzz_ConfigureClaim(uint256 _totalTokensSold, uint256 _claimStartTime) public {
+        vm.assume(type(uint256).max / 1e18 > _totalTokensSold);
+        presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
+        deal(address(tokenContract), address(presaleContract), _totalTokensSold * 1e18);
+        assertEq(tokenContract.balanceOf(address(presaleContract)), _totalTokensSold * 1e18);
+
+        vm.expectRevert(abi.encodeWithSelector(PresaleNotEnded.selector));
+
+        presaleContract.configureClaim(_claimStartTime);
     }
 
     /// @custom:function claim
