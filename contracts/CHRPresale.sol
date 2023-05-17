@@ -76,8 +76,8 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @param _saleToken      - Address of presailing token
     /// @param _oracle         - Address of Chainlink BNB/USD price feed
     /// @param _busd           - Address of BUSD token
-    /// @param _limitPerStage  - Array of prices for each presale stage
-    /// @param _pricePerStage  - Array of totalTokenSold limit for each stage
+    /// @param _limitPerStage  - Array of totalTokenSold limit for each stage
+    /// @param _pricePerStage  - Array of prices for each presale stage
     /// @param _saleStartTime  - Sale start time
     /// @param _saleEndTime    - Sale end time
     constructor(
