@@ -56,7 +56,7 @@ contract CHRPresaleTestnetHelper is Test, CHRPresaleHelper {
     constructor() {
         tokenContract = new CHRToken(totalSupply);
         mockAggregator = new ChainLinkAggregatorMock();
-        mockBUSD = deployCode("BUSD.mock.sol:BUSDMock", abi.encode(0, "BUSD mock", "BUSD", 6));
+        mockBUSD = deployCode("BUSD.mock.sol:BUSDMock", abi.encode());
         mockBUSDWrapped = IERC20(mockBUSD);
     }
 

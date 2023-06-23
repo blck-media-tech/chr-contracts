@@ -2,17 +2,17 @@
 pragma solidity ^0.8.0;
 
 import "contracts/interfaces/IPresale.sol";
-import "./CHRPresale.helper.t.sol";
-import "./CHRPresale.timeIndependent.t.sol";
+import "./CHRPresale.v2.helper.t.sol";
+import "./CHRPresale.v2.timeIndependent.t.sol";
 
 /// @title Test for Chancer presale in case current timestamp is after presale end and claim was started
-contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
-    /// @notice Expected state - contract deployed, presale ended, claim started
+contract CHRPresaleV2Test_Claim is CHRPresaleV2Test_TimeIndependent {
+    /// @notice Expected state - contract deployed, preasle ended, claim started
     function setUp() public virtual override {
         uint256 saleStartTime = block.timestamp + timeDelay;
         uint256 saleEndTime = block.timestamp + timeDelay * 2;
         uint256 claimStartTime = block.timestamp + timeDelay * 3;
-        presaleContract = new CHRPresaleHarness(
+        presaleContract = new CHRPresaleV2Harness(
             address(tokenContract),
             address(mockAggregator),
             address(mockBUSD),
