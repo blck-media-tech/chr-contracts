@@ -2,21 +2,23 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
+import "../CHRPresale/CHRPresale.helper.t.sol";
 import "contracts/CHRPresale.v2.sol";
 import "contracts/CHRToken.sol";
 import "contracts/test/ChainLinkAggregator.mock.sol";
 
-/// @title Contract for exposing some internal funcitons and creating workarounds
+/// @title Contract for exposing some internal functions and creating workarounds
 contract CHRPresaleV2Harness is CHRPresaleV2 {
     constructor(
         address _saleToken,
         address _oracle,
         address _busd,
+        address _presaleV1,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
         uint64[12] memory _pricePerStage
-    ) CHRPresaleV2(_saleToken, _oracle, _busd, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
+    ) CHRPresaleV2(_saleToken, _oracle, _busd, _presaleV1, _saleStartTime, _saleEndTime, _limitPerStage, _pricePerStage) {}
 
     /// @notice exposing internal function for testing
     function exposed_sendValue(address payable _recipient, uint256 _ethAmount) public {
@@ -53,6 +55,7 @@ contract CHRPresaleV2Harness is CHRPresaleV2 {
 
 /// @title Helper contract with useful stuff for tests
 contract CHRPresaleV2Helper is Test {
+    CHRPresaleHarness presaleContractV1;
     CHRPresaleV2Harness presaleContract;
     CHRToken tokenContract;
     ChainLinkAggregatorMock mockAggregator;
@@ -92,10 +95,47 @@ contract CHRPresaleV2Helper is Test {
     uint256 timeDelay = 1 days;
 
     constructor() {
+        uint256 saleStartTime = block.timestamp + timeDelay;
+        uint256 saleEndTime = block.timestamp + timeDelay * 2;
+
         tokenContract = new CHRToken(totalSupply);
         mockAggregator = new ChainLinkAggregatorMock();
         mockBUSD = deployCode("BUSD.mock.sol:BUSDMock", abi.encode());
         mockBUSDWrapped = IERC20(mockBUSD);
+
+        presaleContractV1 = new CHRPresaleHarness(
+            address(tokenContract),
+            address(mockAggregator),
+            address(mockBUSD),
+            saleStartTime,
+            saleEndTime,
+            limitPerStage,
+            pricePerStage
+        );
+    }
+
+    function helper_simulatePresaleV1AndSync(address _user, uint256 _amount, address _owner) public {
+        vm.assume(address(_owner) != address(0));
+        vm.assume(_owner != _user);
+        vm.assume(_owner >= address(10));
+        vm.assume(_owner.code.length == 0);
+        vm.assume(_amount > 0);
+        vm.assume(_amount <= limitPerStage[presaleContract.MAX_STAGE_INDEX()]);
+        uint256 startTime = block.timestamp;
+        vm.warp(presaleContractV1.saleStartTime());
+        (uint256 priceInBNB, uint256 priceInBUSD) = presaleContractV1.getPrice(_amount);
+
+        vm.prank(presaleContractV1.owner());
+        presaleContractV1.transferOwnership(_owner);
+
+        vm.deal(_user, priceInBNB);
+        deal(address(tokenContract), address(presaleContractV1), _amount * 1e18, true);
+
+        vm.prank(_user);
+        presaleContractV1.buyWithBnb{ value: priceInBNB }(_amount, 0);
+        vm.warp(startTime);
+
+        presaleContract.sync();
     }
 
     /// @notice Helper for purchasing tokens

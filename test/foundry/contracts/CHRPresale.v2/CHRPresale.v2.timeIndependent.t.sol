@@ -17,6 +17,7 @@ contract CHRPresaleV2Test_TimeIndependent is CHRPresaleV2Helper, IPresale {
             address(tokenContract),
             address(mockAggregator),
             address(mockBUSD),
+            address(presaleContractV1),
             saleStartTime,
             saleEndTime,
             limitPerStage,
@@ -25,16 +26,19 @@ contract CHRPresaleV2Test_TimeIndependent is CHRPresaleV2Helper, IPresale {
     }
 
     /// @notice Ensure that test initial state was set up correctly
-    function test_SetUpState() public virtual {
+    function testFuzz_SetUpState(address _user, uint256 _amount, address _owner) public virtual {
+        helper_simulatePresaleV1AndSync(_user, _amount, _owner);
         assertEq(address(presaleContract.saleToken()), address(tokenContract));
         assertEq(address(presaleContract.oracle()), address(mockAggregator));
         assertEq(address(presaleContract.busdToken()), address(mockBUSD));
-        assertEq(presaleContract.totalTokensSold(), 0);
+        assertEq(address(presaleContract.presaleV1()), address(presaleContractV1));
+        assertEq(presaleContract.totalTokensSold(), presaleContractV1.totalTokensSold());
         assertEq(presaleContract.saleStartTime(), block.timestamp + timeDelay);
         assertEq(presaleContract.saleEndTime(), block.timestamp + timeDelay * 2);
         assertEq(presaleContract.claimStartTime(), 0);
-        assertEq(presaleContract.currentStage(), 0);
+        assertEq(presaleContract.currentStage(), presaleContractV1.currentStage());
         assertEq(presaleContract.paused(), false);
+        assertEq(presaleContract.purchasedTokens(_user), _amount);
     }
 
     /// @custom:function pause
