@@ -1,0 +1,8 @@
+#!/bin/bash
+source .env
+forge script script/test/CHRPresale.eth.testnet.deploy.s.sol:CHRPresaleETHTestnetDeployScript \
+        --rpc-url $SEPOLIA_RPC_URL \
+        --etherscan-api-key $ETHERSCAN_API_KEY \
+        -vvvv #\
+#        --broadcast \
+#        --verify
