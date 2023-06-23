@@ -61,7 +61,7 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
     mapping(address => bool) public hasClaimed;
 
     /// @notice Indicates whether presale synchronized with v1
-    bool isSynchronized;
+    bool private isSynchronized;
 
     /// @notice Checks that it is now possible to purchase passed amount tokens
     /// @param amount - the number of tokens to verify the possibility of purchase
@@ -91,6 +91,7 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
         address _saleToken,
         address _oracle,
         address _busd,
+        address _presaleV1,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
@@ -99,10 +100,12 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
         if (_oracle == address(0)) revert ZeroAddress("Aggregator");
         if (_busd == address(0)) revert ZeroAddress("BUSD");
         if (_saleToken == address(0)) revert ZeroAddress("Sale token");
+        if (_presaleV1 == address(0)) revert ZeroAddress("Presale V1");
 
         saleToken = _saleToken;
         oracle = IChainlinkPriceFeed(_oracle);
         busdToken = IERC20(_busd);
+        presaleV1 = IPresaleV1(_presaleV1);
         limitPerStage = _limitPerStage;
         pricePerStage = _pricePerStage;
         saleStartTime = _saleStartTime;
@@ -114,10 +117,9 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
     /**
      * @dev To synchronize totalTokensSold with previous presales and calculate current step
      */
-    function sync(IPresaleV1 _presaleV1) external onlyOwner {
+    function sync() external onlyOwner {
         require(!isSynchronized, "Already synchronized");
-        presaleV1 = _presaleV1;
-        totalTokensSold = _presaleV1.totalTokensSold();
+        totalTokensSold = presaleV1.totalTokensSold();
         currentStage = _getStageByTotalSoldAmount();
         isSynchronized = true;
     }
@@ -177,7 +179,7 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
     }
 
     function purchasedTokens(address _user) public returns(uint256) {
-        return _purchasedTokens[_user] + presaleV1.purchasedTokens();
+        return _purchasedTokens[_user] + presaleV1.purchasedTokens(_user);
     }
 
     /// @notice To buy into a presale using BNB with referrer
