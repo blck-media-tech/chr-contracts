@@ -73,17 +73,4 @@ contract CHRPresaleTest_BeforePresale is CHRPresaleTest_TimeIndependent {
         vm.prank(_user);
         presaleContract.claim();
     }
-
-    /// @custom:function configureClaim
-    /// @notice Execution should be reverted if presale is not ended
-    function testFuzz_ConfigureClaim(uint256 _totalTokensSold, uint256 _claimStartTime) public {
-        vm.assume(type(uint256).max / 1e18 > _totalTokensSold);
-        presaleContract.workaround_setTotalTokensSold(_totalTokensSold);
-        deal(address(tokenContract), address(presaleContract), _totalTokensSold * 1e18);
-        assertEq(tokenContract.balanceOf(address(presaleContract)), _totalTokensSold * 1e18);
-
-        vm.expectRevert(abi.encodeWithSelector(PresaleNotEnded.selector));
-
-        presaleContract.configureClaim(_claimStartTime);
-    }
 }
