@@ -266,9 +266,9 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
             uint256 currentStageAmount = limitPerStage[_currentStage] - _totalTokensSold;
             uint256 nextStageAmount = _amount - currentStageAmount;
             cost =
-                currentStageAmount *
-                pricePerStage[_currentStage] +
-                _calculatePriceInBUSDForConditions(nextStageAmount, _currentStage + 1, limitPerStage[_currentStage]);
+            currentStageAmount *
+            pricePerStage[_currentStage] +
+            _calculatePriceInBUSDForConditions(nextStageAmount, _currentStage + 1, limitPerStage[_currentStage]);
         }
 
         return cost;
