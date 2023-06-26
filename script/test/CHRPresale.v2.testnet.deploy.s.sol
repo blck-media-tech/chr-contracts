@@ -6,9 +6,9 @@ import "forge-std/Script.sol";
 import "contracts/test/CHRPresale.v2.testnet.sol";
 
 contract CHRPresaleV2TestnetDeployScript is Script {
-    address tokenContract = 0xcbC7019E3C7f003bc04F3493eBBE75335808C892;
-    address mockBUSD = 0x6b423B7Dd9c36AeDcF16525e6Eb827c7a3a4FA11;
-    address mockAggregator = 0x1E5CAdBDA5494C8cf1f348e0A64AEb8A66604813;
+    address tokenContract = 0xBdB6016CdFea496aAFD5feD0B680fD9fbc0818b3;
+    address mockBUSD = 0x769227dA80e38511cA261874F1542Ce866A2957b;
+    address mockAggregator = 0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526;
     address presaleV1 = 0x3F7b2D56F5B3bb71Ed65cF59d7e802E1Acdc277d;
 
     uint256 saleStartTime = 1680739200;
