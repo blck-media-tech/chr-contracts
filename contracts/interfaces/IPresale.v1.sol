@@ -7,4 +7,6 @@ interface IPresaleV1 {
     function currentStage() external returns(uint8);
 
     function purchasedTokens(address _user) external returns(uint256);
+
+    function paused() external returns(bool);
 }

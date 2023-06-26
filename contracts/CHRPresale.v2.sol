@@ -119,6 +119,7 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
      */
     function sync() external onlyOwner {
         require(!isSynchronized, "Already synchronized");
+        require(presaleV1.paused(), "Presale v1 should be paused");
         totalTokensSold = presaleV1.totalTokensSold();
         currentStage = _getStageByTotalSoldAmount();
         isSynchronized = true;
