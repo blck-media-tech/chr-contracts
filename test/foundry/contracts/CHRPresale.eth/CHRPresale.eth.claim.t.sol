@@ -54,7 +54,7 @@ contract CHRPresaleETHTest_Claim is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function configureClaim

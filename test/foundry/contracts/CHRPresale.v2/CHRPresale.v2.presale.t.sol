@@ -166,7 +166,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         emit TokensBought(_user, "BUSD", _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
 
         vm.prank(_user);
-        presaleContract.buyWithBUSD(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
 
         assertEq(mockBUSDWrapped.balanceOf(_user), balanceUserBefore - priceInBUSD);
         assertEq(mockBUSDWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInBUSD);
@@ -182,7 +182,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(BuyAtLeastOneToken.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithBUSD(0, _referrerId);
+        presaleContract.buyWithUSD(0, _referrerId);
     }
 
     /// @custom:function buyWithBUSD
@@ -202,7 +202,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         );
 
         vm.prank(_user);
-        presaleContract.buyWithBUSD(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function buyWithBUSD
@@ -220,7 +220,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(NotEnoughAllowance.selector, 0, priceInBUSD));
 
         vm.prank(_user);
-        presaleContract.buyWithBUSD(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function buyWithBUSD
@@ -239,7 +239,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert("Pausable: paused");
 
         vm.prank(_user);
-        presaleContract.buyWithBUSD(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function buyWithBUSD
@@ -259,7 +259,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithBUSD(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function configureClaim

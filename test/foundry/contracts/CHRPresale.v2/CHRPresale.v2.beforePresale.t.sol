@@ -53,7 +53,7 @@ contract CHRPresaleV2Test_BeforePresale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithBUSD(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function configureClaim

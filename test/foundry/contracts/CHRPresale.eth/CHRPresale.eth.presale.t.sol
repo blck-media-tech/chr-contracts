@@ -162,7 +162,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         emit TokensBought(_user, "USDT", _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
 
         assertEq(mockUSDTWrapped.balanceOf(_user), balanceUserBefore - priceInUSDT);
         assertEq(mockUSDTWrapped.balanceOf(presaleContract.owner()), balanceOwnerBefore + priceInUSDT);
@@ -178,7 +178,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(BuyAtLeastOneToken.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(0, _referrerId);
+        presaleContract.buyWithUSD(0, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
@@ -198,7 +198,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         );
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
@@ -216,7 +216,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(NotEnoughAllowance.selector, 0, priceInUSDT));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
@@ -235,7 +235,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert("Pausable: paused");
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
@@ -255,7 +255,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithUSDT(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function configureClaim
