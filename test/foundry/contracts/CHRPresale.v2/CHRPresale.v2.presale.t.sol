@@ -68,7 +68,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         emit TokensBought(_user, "BNB", _amount, priceInBUSD, priceInBNB, _referrerId, block.timestamp);
 
         vm.prank(_user);
-        presaleContract.buyWithBnb{ value: priceInBNB }(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin{ value: priceInBNB }(_amount, _referrerId);
 
         assertEq(address(_user).balance, balanceUserBefore - priceInBNB);
         assertEq(address(_owner).balance, balanceOwnerBefore + priceInBNB);
@@ -82,7 +82,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(BuyAtLeastOneToken.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithBnb(0, _referrerId);
+        presaleContract.buyWithNativeCoin(0, _referrerId);
     }
 
     /// @custom:function buyWithBNB
@@ -102,7 +102,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         );
 
         vm.prank(_user);
-        presaleContract.buyWithBnb(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithBNB
@@ -115,7 +115,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert("Pausable: paused");
 
         vm.prank(_user);
-        presaleContract.buyWithBnb(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithBNB
@@ -135,7 +135,7 @@ contract CHRPresaleV2Test_Presale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithBnb(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithBUSD

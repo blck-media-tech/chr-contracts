@@ -112,7 +112,7 @@ contract CHRPresaleETHHelper is Test {
         deal(address(tokenContract), address(presaleContract), _amount * 1e18, true);
 
         vm.prank(_user);
-        presaleContract.buyWithEth{ value: priceInETH }(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin{ value: priceInETH }(_amount, _referrerId);
         vm.warp(startTime);
     }
 }

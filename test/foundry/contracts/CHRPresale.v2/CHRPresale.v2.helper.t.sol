@@ -152,7 +152,7 @@ contract CHRPresaleV2Helper is Test {
         deal(address(tokenContract), address(presaleContract), _amount * 1e18, true);
 
         vm.prank(_user);
-        presaleContract.buyWithBnb{ value: priceInBNB }(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin{ value: priceInBNB }(_amount, _referrerId);
         vm.warp(startTime);
     }
 }

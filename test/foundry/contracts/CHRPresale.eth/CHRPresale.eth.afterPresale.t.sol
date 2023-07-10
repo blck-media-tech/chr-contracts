@@ -42,7 +42,7 @@ contract CHRPresaleETHTest_AfterPresale is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT

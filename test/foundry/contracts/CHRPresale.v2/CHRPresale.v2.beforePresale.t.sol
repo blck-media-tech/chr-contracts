@@ -44,7 +44,7 @@ contract CHRPresaleV2Test_BeforePresale is CHRPresaleV2Test_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithBnb(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithBUSD

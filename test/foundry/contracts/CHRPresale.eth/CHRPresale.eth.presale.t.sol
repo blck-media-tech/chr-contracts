@@ -64,7 +64,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         emit TokensBought(_user, "ETH", _amount, priceInUSDT, priceInETH, _referrerId, block.timestamp);
 
         vm.prank(_user);
-        presaleContract.buyWithEth{ value: priceInETH }(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin{ value: priceInETH }(_amount, _referrerId);
 
         assertEq(address(_user).balance, balanceUserBefore - priceInETH);
         assertEq(address(_owner).balance, balanceOwnerBefore + priceInETH);
@@ -78,7 +78,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(BuyAtLeastOneToken.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(0, _referrerId);
+        presaleContract.buyWithNativeCoin(0, _referrerId);
     }
 
     /// @custom:function buyWithETH
@@ -98,7 +98,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         );
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithETH
@@ -111,7 +111,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert("Pausable: paused");
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithETH
@@ -131,7 +131,7 @@ contract CHRPresaleETHTest_Presale is CHRPresaleETHTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(AddressBlacklisted.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithEth(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithUSDT
