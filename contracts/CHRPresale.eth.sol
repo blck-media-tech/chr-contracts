@@ -161,7 +161,7 @@ contract CHRPresaleETH is IPresaleETH, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using ETH with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithEth(
+    function buyWithNativeCoin(
         uint256 _amount,
         uint256 _referrerId
     ) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
@@ -180,7 +180,7 @@ contract CHRPresaleETH is IPresaleETH, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using USDT with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithUSDT(
+    function buyWithUSD(
         uint256 _amount,
         uint256 _referrerId
     ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {

@@ -186,7 +186,7 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using BNB with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithBnb(
+    function buyWithNativeCoin(
         uint256 _amount,
         uint256 _referrerId
     ) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
@@ -205,7 +205,7 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using BUSD with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithBUSD(
+    function buyWithUSD(
         uint256 _amount,
         uint256 _referrerId
     ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
