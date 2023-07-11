@@ -1,0 +1,8 @@
+#!/bin/bash
+source .env
+forge script script/production/CHRPresale.v2.deploy.s.sol:CHRPresaleETHDeployScript \
+        --rpc-url $BSC_MAINNET_RPC_URL \
+        --etherscan-api-key $BSCSCAN_API_KEY \
+        -vvvv #\
+#        --broadcast \
+#        --verify \

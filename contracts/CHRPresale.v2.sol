@@ -9,9 +9,10 @@ import "./openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 import "./interfaces/IChainlinkPriceFeed.sol";
 import "./interfaces/IPresale.sol";
+import "./interfaces/IPresale.v1.sol";
 
 /// @title Presale contract for Chancer token
-contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
+contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     /// @notice Address of token contract
@@ -25,6 +26,9 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
 
     /// @notice Last stage index
     uint8 public constant MAX_STAGE_INDEX = 11;
+
+    /// @notice Address of presale v1
+    IPresaleV1 public presaleV1;
 
     /// @notice Total amount of purchased tokens
     uint256 public totalTokensSold;
@@ -48,13 +52,16 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     uint8 public currentStage;
 
     /// @notice Stores the number of tokens purchased by each user that have not yet been claimed
-    mapping(address => uint256) public purchasedTokens;
+    mapping(address => uint256) public _purchasedTokens;
 
-    /// @notice Indicates whbnber the user is blacklisted or not
+    /// @notice Indicates whether the user is blacklisted or not
     mapping(address => bool) public blacklist;
 
-    /// @notice Indicates whbnber the user already claimed or not
+    /// @notice Indicates whether the user already claimed or not
     mapping(address => bool) public hasClaimed;
+
+    /// @notice Indicates whether presale synchronized with v1
+    bool private isSynchronized;
 
     /// @notice Checks that it is now possible to purchase passed amount tokens
     /// @param amount - the number of tokens to verify the possibility of purchase
@@ -84,6 +91,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         address _saleToken,
         address _oracle,
         address _busd,
+        address _presaleV1,
         uint256 _saleStartTime,
         uint256 _saleEndTime,
         uint32[12] memory _limitPerStage,
@@ -92,16 +100,29 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         if (_oracle == address(0)) revert ZeroAddress("Aggregator");
         if (_busd == address(0)) revert ZeroAddress("BUSD");
         if (_saleToken == address(0)) revert ZeroAddress("Sale token");
+        if (_presaleV1 == address(0)) revert ZeroAddress("Presale V1");
 
         saleToken = _saleToken;
         oracle = IChainlinkPriceFeed(_oracle);
         busdToken = IERC20(_busd);
+        presaleV1 = IPresaleV1(_presaleV1);
         limitPerStage = _limitPerStage;
         pricePerStage = _pricePerStage;
         saleStartTime = _saleStartTime;
         saleEndTime = _saleEndTime;
 
         emit SaleTimeUpdated(_saleStartTime, _saleEndTime, block.timestamp);
+    }
+
+    /**
+     * @dev To synchronize totalTokensSold with previous presales and calculate current step
+     */
+    function sync() external onlyOwner {
+        require(!isSynchronized, "Already synchronized");
+        require(presaleV1.paused(), "Presale v1 should be paused");
+        totalTokensSold = presaleV1.totalTokensSold();
+        currentStage = _getStageByTotalSoldAmount();
+        isSynchronized = true;
     }
 
     /// @notice To pause the presale
@@ -158,10 +179,14 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         emit ClaimTimeUpdated(_claimStartTime, block.timestamp);
     }
 
+    function purchasedTokens(address _user) public view returns(uint256) {
+        return _purchasedTokens[_user] + presaleV1.purchasedTokens(_user);
+    }
+
     /// @notice To buy into a presale using BNB with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithBnb(
+    function buyWithNativeCoin(
         uint256 _amount,
         uint256 _referrerId
     ) public payable notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
@@ -169,7 +194,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         if (msg.value < priceInBNB) revert NotEnoughBNB(msg.value, priceInBNB);
         uint256 excess = msg.value - priceInBNB;
         totalTokensSold += _amount;
-        purchasedTokens[_msgSender()] += _amount;
+        _purchasedTokens[_msgSender()] += _amount;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         _sendValue(payable(owner()), priceInBNB);
@@ -180,7 +205,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     /// @notice To buy into a presale using BUSD with referrer
     /// @param _amount - Amount of tokens to buy
     /// @param _referrerId - id of the referrer
-    function buyWithBUSD(
+    function buyWithUSD(
         uint256 _amount,
         uint256 _referrerId
     ) public notBlacklisted verifyPurchase(_amount) whenNotPaused nonReentrant {
@@ -188,7 +213,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
         uint256 allowance = busdToken.allowance(_msgSender(), address(this));
         if (priceInBUSD > allowance) revert NotEnoughAllowance(allowance, priceInBUSD);
         totalTokensSold += _amount;
-        purchasedTokens[_msgSender()] += _amount;
+        _purchasedTokens[_msgSender()] += _amount;
         uint8 stageAfterPurchase = _getStageByTotalSoldAmount();
         if (stageAfterPurchase > currentStage) currentStage = stageAfterPurchase;
         busdToken.safeTransferFrom(_msgSender(), owner(), priceInBUSD);
@@ -199,7 +224,7 @@ contract CHRPresale is IPresale, Pausable, Ownable, ReentrancyGuard {
     function claim() external whenNotPaused {
         if (block.timestamp < claimStartTime || claimStartTime == 0) revert InvalidTimeframe();
         if (hasClaimed[_msgSender()]) revert AlreadyClaimed();
-        uint256 amount = purchasedTokens[_msgSender()] * 1e18;
+        uint256 amount = purchasedTokens(_msgSender()) * 1e18;
         if (amount == 0) revert NothingToClaim();
         hasClaimed[_msgSender()] = true;
         IERC20(saleToken).safeTransfer(_msgSender(), amount);

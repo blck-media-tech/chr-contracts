@@ -1,0 +1,8 @@
+#!/bin/bash
+source .env
+forge script script/test/CHRPresale.v2.testnet.deploy.s.sol:CHRPresaleV2TestnetDeployScript \
+        --rpc-url $BSC_TESTNET_RPC_URL \
+        --etherscan-api-key $BSCSCAN_API_KEY \
+        -vvvv #\
+#        --broadcast \
+#        --verify

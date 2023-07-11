@@ -2,20 +2,21 @@
 pragma solidity ^0.8.0;
 
 import "contracts/interfaces/IPresale.sol";
-import "./CHRPresale.helper.t.sol";
-import "./CHRPresale.timeIndependent.t.sol";
+import "./CHRPresale.v2.helper.t.sol";
+import "./CHRPresale.v2.timeIndependent.t.sol";
 
 /// @title Test for Chancer presale in case current timestamp is after presale end and claim was started
-contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
-    /// @notice Expected state - contract deployed, presale ended, claim started
+contract CHRPresaleV2Test_Claim is CHRPresaleV2Test_TimeIndependent {
+    /// @notice Expected state - contract deployed, preasle ended, claim started
     function setUp() public virtual override {
         uint256 saleStartTime = block.timestamp + timeDelay;
         uint256 saleEndTime = block.timestamp + timeDelay * 2;
         uint256 claimStartTime = block.timestamp + timeDelay * 3;
-        presaleContract = new CHRPresaleHarness(
+        presaleContract = new CHRPresaleV2Harness(
             address(tokenContract),
             address(mockAggregator),
             address(mockBUSD),
+            address(presaleContractV1),
             saleStartTime,
             saleEndTime,
             limitPerStage,
@@ -28,15 +29,18 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
     }
 
     /// @notice Ensure that test initial state was set up correctly
-    function test_SetUpState() public override {
+    function testFuzz_SetUpState(address _user, uint256 _amount, address _owner) public virtual override {
+        helper_simulatePresaleV1AndSync(_user, _amount, _owner);
         assertEq(address(presaleContract.saleToken()), address(tokenContract));
         assertEq(address(presaleContract.oracle()), address(mockAggregator));
         assertEq(address(presaleContract.busdToken()), address(mockBUSD));
-        assertEq(presaleContract.totalTokensSold(), 0);
+        assertEq(address(presaleContract.presaleV1()), address(presaleContractV1));
+        assertEq(presaleContract.totalTokensSold(), presaleContractV1.totalTokensSold());
         assertEq(presaleContract.saleStartTime(), block.timestamp - timeDelay * 2);
         assertEq(presaleContract.saleEndTime(), block.timestamp - timeDelay);
         assertEq(presaleContract.claimStartTime(), block.timestamp);
-        assertEq(presaleContract.currentStage(), 0);
+        assertEq(presaleContract.currentStage(), presaleContractV1.currentStage());
+        assertEq(presaleContract.purchasedTokens(_user), _amount);
     }
 
     /// @custom:function buyWithBNB
@@ -45,7 +49,7 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithBnb(_amount, _referrerId);
+        presaleContract.buyWithNativeCoin(_amount, _referrerId);
     }
 
     /// @custom:function buyWithBUSD
@@ -54,7 +58,7 @@ contract CHRPresaleTest_Claim is CHRPresaleTest_TimeIndependent {
         vm.expectRevert(abi.encodeWithSelector(InvalidTimeframe.selector));
 
         vm.prank(_user);
-        presaleContract.buyWithBUSD(_amount, _referrerId);
+        presaleContract.buyWithUSD(_amount, _referrerId);
     }
 
     /// @custom:function configureClaim
