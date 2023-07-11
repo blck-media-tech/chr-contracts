@@ -179,7 +179,7 @@ contract CHRPresaleV2 is IPresale, Pausable, Ownable, ReentrancyGuard {
         emit ClaimTimeUpdated(_claimStartTime, block.timestamp);
     }
 
-    function purchasedTokens(address _user) public returns(uint256) {
+    function purchasedTokens(address _user) public view returns(uint256) {
         return _purchasedTokens[_user] + presaleV1.purchasedTokens(_user);
     }
 
