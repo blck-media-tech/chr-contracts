@@ -2,11 +2,11 @@
 pragma solidity ^0.8.18;
 
 interface IPresaleV1 {
-    function totalTokensSold() external returns(uint256);
+    function totalTokensSold() external view returns(uint256);
 
-    function currentStage() external returns(uint8);
+    function currentStage() external view returns(uint8);
 
-    function purchasedTokens(address _user) external returns(uint256);
+    function purchasedTokens(address _user) external view returns(uint256);
 
-    function paused() external returns(bool);
+    function paused() external view returns(bool);
 }
